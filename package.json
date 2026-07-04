@@ -43,7 +43,7 @@
   },
   "build": {
     "appId": "com.hangul.app",
-    "productName": "Hangul Study",
+    "productName": "Hangul Learn",
     "directories": {
       "output": "build-output"
     },

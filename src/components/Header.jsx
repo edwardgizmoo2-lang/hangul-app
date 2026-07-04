@@ -49,7 +49,7 @@ export default function Header({ activeTab, onTabChange, onMinimize, onMaximize,
       <div className={`flex items-center gap-4 px-4 ${electron ? 'pb-2 pt-2.5 -webkit-app-region:drag' : 'pb-2 pt-3 safe-area-top'}`}>
         <div className="flex items-center gap-2">
           <span className="text-2xl leading-none font-bold">한글</span>
-          <span className="text-xs text-zinc-500 uppercase tracking-wider font-medium">Study</span>
+          <span className="text-xs text-zinc-500 uppercase tracking-wider font-medium">Learn</span>
         </div>
         <div className="w-px h-5 bg-zinc-700" />
         <nav className="flex items-center gap-1.5" role="tablist">
