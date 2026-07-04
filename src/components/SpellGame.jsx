@@ -103,7 +103,7 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
     setResults(prev => [...prev, result])
     setShowFeedback(true)
     speakSyllable(currentSyllable.display)
-  }, [currentSyllable, picked, stopTimer, speakLetter])
+  }, [currentSyllable, picked, stopTimer, speakSyllable])
 
   const startGame = useCallback((selectedMode, selectedDifficulty = null) => {
     const shuffled = shuffle(syllables).slice(0, DECK_SIZE)
@@ -152,7 +152,7 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
     const newPicked = [...picked, char]
     setPicked(newPicked)
     await speakSyllable(char)
-  }, [picked, currentSyllable, showFeedback, speakLetter])
+  }, [picked, currentSyllable, showFeedback, speakSyllable])
 
   const clearPicks = useCallback(() => {
     setPicked([])
@@ -177,7 +177,7 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
     setScore(prev => prev + points)
     setShowFeedback(true)
     speakSyllable(currentSyllable.display)
-  }, [currentSyllable, picked, stopTimer, speakLetter])
+  }, [currentSyllable, picked, stopTimer, speakSyllable])
 
   const handleNext = useCallback(() => {
     const next = currentIndex + 1
