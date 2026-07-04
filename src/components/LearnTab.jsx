@@ -25,15 +25,20 @@ function getSoundOptions(correctAnswer) {
   return options.sort(() => Math.random() - 0.5)
 }
 
-export default function LearnTab({ onGameComplete, koreanVoiceAvailable }) {
+export default function LearnTab({ onGameComplete, koreanVoiceAvailable, onGameStateChange }) {
   const [gameType, setGameType] = useState(null) // null | 'letter' | 'spell'
 
+  const setGameTypeWrapped = useCallback((type) => {
+    setGameType(type)
+    onGameStateChange(type !== null)
+  }, [onGameStateChange])
+
   if (gameType === 'spell') {
-    return <SpellGame onGameComplete={onGameComplete} koreanVoiceAvailable={koreanVoiceAvailable} onBack={() => setGameType(null)} />
+    return <SpellGame onGameComplete={onGameComplete} koreanVoiceAvailable={koreanVoiceAvailable} onBack={() => setGameTypeWrapped(null)} />
   }
 
   if (gameType === 'letter') {
-    return <LetterGame onGameComplete={onGameComplete} onBack={() => setGameType(null)} />
+    return <LetterGame onGameComplete={onGameComplete} onBack={() => setGameTypeWrapped(null)} />
   }
 
   // Game Type Selection
@@ -50,7 +55,7 @@ export default function LearnTab({ onGameComplete, koreanVoiceAvailable }) {
 
         <div className="grid grid-cols-1 gap-3 max-w-sm mx-auto">
           <button
-            onClick={() => setGameType('letter')}
+            onClick={() => setGameTypeWrapped('letter')}
             className="card p-5 text-left hover:border-purple-500/50 hover:bg-zinc-800/50 transition-all group"
           >
             <div className="flex items-center gap-4">
@@ -63,7 +68,7 @@ export default function LearnTab({ onGameComplete, koreanVoiceAvailable }) {
           </button>
 
           <button
-            onClick={() => setGameType('spell')}
+            onClick={() => setGameTypeWrapped('spell')}
             className="card p-5 text-left hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group"
           >
             <div className="flex items-center gap-4">
