@@ -1,14 +1,24 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { consonants, doubleConsonants, vowels, compoundVowels, syllables } from '../data/hangul'
 
 const ALL_CONSONANTS = [...consonants, ...doubleConsonants]
 const ALL_VOWELS = [...vowels, ...compoundVowels]
 
-const SORTED_SYLLABLES = [...syllables].sort((a, b) => a.romanization.localeCompare(b.romanization))
+const VOWEL_ORDER = ['ㅏ','ㅑ','ㅓ','ㅕ','ㅗ','ㅛ','ㅜ','ㅠ','ㅡ','ㅣ']
 
 export default function HangulTab() {
   const [subTab, setSubTab] = useState('letters')
   const [playing, setPlaying] = useState(null)
+
+  const syllablesByVowel = useMemo(() => {
+    const groups = {}
+    VOWEL_ORDER.forEach(v => { groups[v] = [] })
+    syllables.forEach(syl => {
+      const vowel = syl.letters[1]
+      if (groups[vowel]) groups[vowel].push(syl)
+    })
+    return groups
+  }, [])
 
   const playLetterAudio = useCallback(async (audioFile) => {
     setPlaying(audioFile)
@@ -61,7 +71,7 @@ export default function HangulTab() {
         {subTab === 'letters' ? (
           <LettersView allConsonants={ALL_CONSONANTS} allVowels={ALL_VOWELS} playLetterAudio={playLetterAudio} playing={playing} />
         ) : (
-          <SyllablesView syllables={SORTED_SYLLABLES} speakSyllable={speakSyllable} />
+          <SyllablesView syllablesByVowel={syllablesByVowel} speakSyllable={speakSyllable} />
         )}
       </div>
     </div>
@@ -103,35 +113,49 @@ function Section({ title, letters, playLetterAudio, playing }) {
   )
 }
 
-function SyllablesView({ syllables, speakSyllable }) {
-  const [playingIdx, setPlayingIdx] = useState(null)
+function SyllablesView({ syllablesByVowel, speakSyllable }) {
+  const [playingKey, setPlayingKey] = useState(null)
 
-  const handlePlay = useCallback(async (syl, idx) => {
-    setPlayingIdx(idx)
+  const handlePlay = useCallback(async (syl, key) => {
+    setPlayingKey(key)
     await speakSyllable(syl.display)
-    setPlayingIdx(null)
+    setPlayingKey(null)
   }, [speakSyllable])
 
   return (
-    <div className="pt-2">
-      <p className="text-zinc-500 text-xs mb-3">{syllables.length} syllables — tap to hear</p>
-      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-7 gap-2">
-        {syllables.map((syl, idx) => (
-          <button
-            key={idx}
-            onClick={() => handlePlay(syl, idx)}
-            disabled={playingIdx === idx}
-            className={`flex flex-col items-center justify-center p-2.5 rounded-xl border-2 transition-all active:scale-95 ${
-              playingIdx === idx
-                ? 'border-cyan-500 bg-cyan-500/20'
-                : 'border-zinc-800 bg-zinc-900 hover:border-zinc-600 hover:bg-zinc-800'
-            }`}
-          >
-            <span className="text-2xl font-bold">{syl.display}</span>
-            <span className="text-zinc-400 text-[10px] mt-0.5">{syl.romanization}</span>
-          </button>
-        ))}
-      </div>
+    <div className="pt-2 space-y-6">
+      {VOWEL_ORDER.map(vowel => {
+        const syls = syllablesByVowel[vowel]
+        if (!syls || syls.length === 0) return null
+        const vowelRoman = syls[0]?.romanization.slice(-1) || vowel
+        return (
+          <div key={vowel}>
+            <h3 className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-3">
+              {vowel} <span className="text-zinc-600">— {vowelRoman} combinations</span>
+            </h3>
+            <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-7 gap-2">
+              {syls.map((syl, idx) => {
+                const key = `${vowel}-${idx}`
+                return (
+                  <button
+                    key={key}
+                    onClick={() => handlePlay(syl, key)}
+                    disabled={playingKey === key}
+                    className={`flex flex-col items-center justify-center p-2.5 rounded-xl border-2 transition-all active:scale-95 ${
+                      playingKey === key
+                        ? 'border-cyan-500 bg-cyan-500/20'
+                        : 'border-zinc-800 bg-zinc-900 hover:border-zinc-600 hover:bg-zinc-800'
+                    }`}
+                  >
+                    <span className="text-2xl font-bold">{syl.display}</span>
+                    <span className="text-zinc-400 text-[10px] mt-0.5">{syl.romanization}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
