@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react'
-import { consonants, doubleConsonants, vowels } from '../data/hangul'
+import { consonants, doubleConsonants, vowels, compoundVowels } from '../data/hangul'
 import { resetProgress } from '../utils/storage'
 
 const ALL_LETTERS = [
   ...consonants.map(c => ({ ...c, type: 'consonant', character: c.character || c.char })),
   ...doubleConsonants.map(c => ({ ...c, type: 'consonant', character: c.character || c.char })),
   ...vowels.map(v => ({ ...v, type: 'vowel', character: v.character || v.char })),
+  ...compoundVowels.map(v => ({ ...v, type: 'vowel', character: v.character || v.char })),
 ]
 
 function getMasteryLabel(level) {
@@ -310,7 +311,7 @@ function LetterGrid({ letters }) {
       doubleConsonants.some(c => (c.character || c.char) === (l.character || l.char))
     )
     const vowelList = letters.filter(l =>
-      vowels.some(v => (v.character || v.char) === (l.character || l.char))
+      [...vowels, ...compoundVowels].some(v => (v.character || v.char) === (l.character || l.char))
     )
     return [
       ['Consonants', basicConsonants],
@@ -347,7 +348,7 @@ function LetterList({ letters }) {
       doubleConsonants.some(c => (c.character || c.char) === (l.character || l.char))
     )
     const vowelList = letters.filter(l =>
-      vowels.some(v => (v.character || v.char) === (l.character || l.char))
+      [...vowels, ...compoundVowels].some(v => (v.character || v.char) === (l.character || l.char))
     )
     return [
       ['Consonants', basicConsonants],
