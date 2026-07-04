@@ -54,7 +54,7 @@ export default function LearnTab({ onGameComplete, koreanVoiceAvailable }) {
             className="card p-5 text-left hover:border-purple-500/50 hover:bg-zinc-800/50 transition-all group"
           >
             <div className="flex items-center gap-4">
-              <div className="text-3xl">🇰🇷</div>
+              <div className="text-3xl font-hangul">한글</div>
               <div>
                 <h3 className="text-white font-bold text-base mb-0.5 group-hover:text-purple-400 transition-colors">Letter Recognition</h3>
                 <p className="text-zinc-500 text-xs">See a Korean letter, pick its type and sound. {ALL_LETTERS.length} letters.</p>
