@@ -55,10 +55,7 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "assets/icon.ico",
-      "sign": false,
-      "signAndEditExecutable": false,
-      "verifyUpdateCodeSignature": false
+      "icon": "assets/icon.ico"
     },
     "nsis": {
       "oneClick": false,
