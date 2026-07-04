@@ -51,7 +51,8 @@ export default function LearnTab({ onGameComplete, koreanVoiceAvailable }) {
         <div className="grid grid-cols-1 gap-3 max-w-sm mx-auto">
           <button
             onClick={() => setGameType('letter')}
-            className="card p-5 text-left hover:border-purple-500/50 hover:bg-zinc-800/50 transition-all group"
+            className="card p-5 text-left hover:border-purple-500/50 hover:bg-zinc-800/50 transition-all group animate-slide-up"
+            style={{ animationDelay: '0.1s' }}
           >
             <div className="flex items-center gap-4">
               <div className="text-3xl font-hangul">한글</div>
@@ -64,7 +65,8 @@ export default function LearnTab({ onGameComplete, koreanVoiceAvailable }) {
 
           <button
             onClick={() => setGameType('spell')}
-            className="card p-5 text-left hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group"
+            className="card p-5 text-left hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group animate-slide-up"
+            style={{ animationDelay: '0.2s' }}
           >
             <div className="flex items-center gap-4">
               <div className="text-3xl">🔤</div>

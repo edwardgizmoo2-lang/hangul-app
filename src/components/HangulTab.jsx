@@ -179,13 +179,16 @@ function Section({ title, letters, playLetterAudio, playing }) {
             disabled={playing === letter.audioFile}
             className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all active:scale-95 ${
               playing === letter.audioFile
-                ? 'border-purple-500 bg-purple-500/20'
+                ? 'border-purple-500 bg-purple-500/20 animate-audio-pulse'
                 : 'border-zinc-800 bg-zinc-900 hover:border-zinc-600 hover:bg-zinc-800'
             }`}
           >
             <span className="text-3xl font-bold mb-1">{letter.char}</span>
             <span className="text-zinc-300 text-sm font-medium">{letter.romanization}</span>
             <span className="text-zinc-500 text-[10px] mt-0.5">{letter.name} / {letter.audio}</span>
+            {playing === letter.audioFile && (
+              <span className="text-purple-400 text-[10px] mt-1">🔊</span>
+            )}
           </button>
         ))}
       </div>
