@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { syllables, SPELL_CONSONANTS, SPELL_VOWELS, difficultySettings } from '../data/hangul'
+import { syllables, SPELL_CONSONANTS, SPELL_VOWELS, difficultySettings, consonants, doubleConsonants, vowels, compoundVowels } from '../data/hangul'
 import GameControls from './GameControls'
 import ProgressBar from './ProgressBar'
 import CircularTimer from './CircularTimer'
 
 const DECK_SIZE = 20
+
+const ALL_LETTERS = [...consonants, ...doubleConsonants, ...vowels, ...compoundVowels]
+const AUDIO_MAP = Object.fromEntries(ALL_LETTERS.map(l => [l.char, l.audioFile]))
 
 function shuffle(arr) {
   const a = [...arr]
@@ -146,13 +149,24 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
     }
   }, [results, confirmQuitGame])
 
+  const playLetterAudio = useCallback(async (char) => {
+    const audioFile = AUDIO_MAP[char]
+    if (!audioFile) return
+    return new Promise((resolve) => {
+      const audio = new Audio(`/audio/${audioFile}`)
+      audio.onended = () => resolve()
+      audio.onerror = () => resolve()
+      audio.play().catch(() => resolve())
+    })
+  }, [])
+
   const pickTile = useCallback(async (char) => {
     if (showFeedback || !currentSyllable) return
     if (picked.length >= currentSyllable.letters.length) return
     const newPicked = [...picked, char]
     setPicked(newPicked)
-    await speakSyllable(char)
-  }, [picked, currentSyllable, showFeedback, speakSyllable])
+    await playLetterAudio(char)
+  }, [picked, currentSyllable, showFeedback, playLetterAudio])
 
   const clearPicks = useCallback(() => {
     setPicked([])
