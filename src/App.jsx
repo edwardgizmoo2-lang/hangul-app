@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Header from './components/Header'
 import LearnTab from './components/LearnTab'
 import HangulTab from './components/HangulTab'
 import ProgressTab from './components/ProgressTab'
+import ScrollToTopButton from './components/ScrollToTopButton'
 import { getStats, getLetterMastery, saveGameSession } from './utils/storage'
 import { isElectron } from './utils/platform'
 
@@ -11,6 +12,7 @@ function App() {
   const [stats, setStats] = useState(null)
   const [letterMastery, setLetterMastery] = useState({})
   const [koreanVoiceAvailable, setKoreanVoiceAvailable] = useState(false)
+  const scrollRef = useRef(null)
 
   const loadStats = useCallback(async () => {
     const [s, lm] = await Promise.all([getStats(), getLetterMastery()])
@@ -70,7 +72,7 @@ function App() {
         onClose={() => window.electron?.window?.close?.()}
         isMaximized={false}
       />
-      <main className="flex-1 overflow-y-auto">
+      <main ref={scrollRef} className="flex-1 overflow-y-auto">
         {activeTab === 'learn' && (
           <LearnTab onGameComplete={handleGameComplete} koreanVoiceAvailable={koreanVoiceAvailable} />
         )}
@@ -81,6 +83,7 @@ function App() {
           <ProgressTab stats={stats} letterMastery={letterMastery} onRefresh={loadStats} />
         )}
       </main>
+      <ScrollToTopButton scrollRef={scrollRef} />
     </div>
   )
 }
