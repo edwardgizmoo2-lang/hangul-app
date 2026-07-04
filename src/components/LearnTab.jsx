@@ -114,6 +114,11 @@ function LetterGame({ onGameComplete, onBack }) {
     }
   }, [playAudioFile])
 
+  const playSfx = useCallback((type) => {
+    const audio = new Audio(`/audio/sfx/${type}.mp3`)
+    audio.play().catch(() => {})
+  }, [])
+
   const startTimer = useCallback((seconds) => {
     setTimeRemaining(seconds)
     setTotalTime(seconds)
@@ -238,8 +243,9 @@ function LetterGame({ onGameComplete, onBack }) {
     setLetterResults(prev => [...prev, result])
     setScore(prev => prev + points)
     setShowFeedback(true)
+    playSfx(points > 0 ? 'correct' : 'wrong')
     speakLetter(currentLetter)
-  }, [currentLetter, typeAnswer, soundAnswer, stopTimer, speakLetter])
+  }, [currentLetter, typeAnswer, soundAnswer, stopTimer, speakLetter, playSfx])
 
   const handleNext = useCallback(() => {
     const nextIndex = currentIndex + 1

@@ -59,6 +59,11 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
     await speakKorean(text)
   }, [speakKorean])
 
+  const playSfx = useCallback((type) => {
+    const audio = new Audio(`/audio/sfx/${type}.mp3`)
+    audio.play().catch(() => {})
+  }, [])
+
   const startTimer = useCallback((seconds) => {
     setTimeRemaining(seconds)
     setTotalTime(seconds)
@@ -190,8 +195,9 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
     setResults(prev => [...prev, result])
     setScore(prev => prev + points)
     setShowFeedback(true)
+    playSfx(isCorrect ? 'correct' : 'wrong')
     speakSyllable(currentSyllable.display)
-  }, [currentSyllable, picked, stopTimer, speakSyllable])
+  }, [currentSyllable, picked, stopTimer, speakSyllable, playSfx])
 
   const handleNext = useCallback(() => {
     const next = currentIndex + 1
