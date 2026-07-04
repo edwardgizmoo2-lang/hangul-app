@@ -95,7 +95,7 @@ function Section({ title, letters, playLetterAudio, playing }) {
           >
             <span className="text-3xl font-bold mb-1">{letter.char}</span>
             <span className="text-zinc-300 text-sm font-medium">{letter.romanization}</span>
-            <span className="text-zinc-500 text-[10px] mt-0.5">{letter.name}</span>
+            <span className="text-zinc-500 text-[10px] mt-0.5">{letter.name} / {letter.audio}</span>
           </button>
         ))}
       </div>

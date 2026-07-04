@@ -82,14 +82,25 @@ const VOWEL_ROMAN = {
 
 const INITIALS = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ']
 const MEDIALS = ['ㅏ','ㅑ','ㅓ','ㅕ','ㅗ','ㅛ','ㅜ','ㅠ','ㅡ','ㅣ']
+const FINALS = ['ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ']
+const FINAL_INDEX = { 'ㄱ':1, 'ㄲ':2, 'ㄳ':3, 'ㄴ':4, 'ㄵ':5, 'ㄶ':6, 'ㄷ':7, 'ㄹ':8, 'ㄺ':9, 'ㄻ':10, 'ㄼ':11, 'ㄽ':12, 'ㄾ':13, 'ㄿ':14, 'ㅀ':15, 'ㅁ':16, 'ㅂ':17, 'ㅄ':18, 'ㅅ':19, 'ㅆ':20, 'ㅇ':21, 'ㅈ':22, 'ㅊ':23, 'ㅋ':24, 'ㅌ':25, 'ㅍ':26, 'ㅎ':27 }
 
 const MEDIAL_INDEX = { 'ㅏ':0, 'ㅑ':2, 'ㅓ':4, 'ㅕ':6, 'ㅗ':8, 'ㅛ':12, 'ㅜ':13, 'ㅠ':16, 'ㅡ':18, 'ㅣ':20 }
 const INITIAL_INDEX = { 'ㄱ':0, 'ㄲ':1, 'ㄴ':2, 'ㄷ':3, 'ㄸ':4, 'ㄹ':5, 'ㅁ':6, 'ㅂ':7, 'ㅃ':8, 'ㅅ':9, 'ㅆ':10, 'ㅇ':11, 'ㅈ':12, 'ㅉ':13, 'ㅊ':14, 'ㅋ':15, 'ㅌ':16, 'ㅍ':17, 'ㅎ':18 }
 
-function composeSyllable(initial, medial) {
+const FINAL_ROMAN = {
+  'ㄱ': 'k', 'ㄲ': 'k', 'ㄳ': 'k', 'ㄴ': 'n', 'ㄵ': 'n', 'ㄶ': 'n',
+  'ㄷ': 't', 'ㄹ': 'l', 'ㄺ': 'k', 'ㄻ': 'm', 'ㄼ': 'p', 'ㄽ': 'l',
+  'ㄾ': 'l', 'ㄿ': 'p', 'ㅀ': 'l', 'ㅁ': 'm', 'ㅂ': 'p', 'ㅄ': 'p',
+  'ㅅ': 't', 'ㅆ': 't', 'ㅇ': 'ng', 'ㅈ': 't', 'ㅊ': 't', 'ㅋ': 'k',
+  'ㅌ': 't', 'ㅍ': 'p', 'ㅎ': 't',
+}
+
+function composeSyllable(initial, medial, final) {
   const ii = INITIAL_INDEX[initial] ?? 0
   const mi = MEDIAL_INDEX[medial] ?? 0
-  return String.fromCharCode(0xAC00 + ii * 21 * 28 + mi * 28)
+  const fi = final ? (FINAL_INDEX[final] ?? 0) : 0
+  return String.fromCharCode(0xAC00 + ii * 21 * 28 + mi * 28 + fi)
 }
 
 export const syllables = []
@@ -100,6 +111,16 @@ INITIALS.forEach(c => {
       romanization: roman,
       letters: [c, v],
       display: composeSyllable(c, v),
+    })
+    FINALS.forEach(f => {
+      if (FINAL_INDEX[f] === undefined) return
+      const finalRoman = FINAL_ROMAN[f]
+      const romanWithFinal = roman + finalRoman
+      syllables.push({
+        romanization: romanWithFinal,
+        letters: [c, v, f],
+        display: composeSyllable(c, v, f),
+      })
     })
   })
 })
