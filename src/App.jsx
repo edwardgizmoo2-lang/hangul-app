@@ -19,6 +19,7 @@ function App() {
 
   useEffect(() => {
     loadStats()
+    checkTTS()
   }, [loadStats])
 
   useEffect(() => {
