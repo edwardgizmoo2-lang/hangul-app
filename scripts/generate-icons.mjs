@@ -95,7 +95,6 @@ async function generate() {
   })
 
   const icoPath = join(ROOT, 'assets', 'icon.ico')
-  await sharp(svgBuffer).toFile(icoPath.replace('.ico', '-temp.png'))
   // Write the actual ICO
   const { writeFileSync } = await import('fs')
   writeFileSync(icoPath, Buffer.concat([header, dirBuf, ...imageBuffers]))
