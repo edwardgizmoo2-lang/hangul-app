@@ -308,12 +308,12 @@ function LetterGame({ onGameComplete, onBack }) {
           </p>
 
           <div className="grid grid-cols-2 gap-3 max-w-md mx-auto mb-6">
-            <div className="card text-left p-4">
+            <div className="card text-left p-4 transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/10">
               <div className="text-xl mb-1">⏱️</div>
               <h3 className="text-white font-semibold text-sm mb-0.5">Timer Mode</h3>
               <p className="text-zinc-500 text-xs">Race against the clock</p>
             </div>
-            <div className="card text-left p-4">
+            <div className="card text-left p-4 transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/10">
               <div className="text-xl mb-1">🧘</div>
               <h3 className="text-white font-semibold text-sm mb-0.5">Freeplay Mode</h3>
               <p className="text-zinc-500 text-xs">Learn at your own pace</p>
@@ -398,7 +398,7 @@ function LetterGame({ onGameComplete, onBack }) {
           <h2 className="text-2xl font-bold mb-1">Game Complete!</h2>
           <p className="text-zinc-400 mb-5 text-sm">{mode === 'timer' ? 'Timer Mode' : 'Freeplay'}</p>
 
-          <div className="card p-4 mb-5">
+          <div className="card p-4 mb-5 transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/10">
             <div className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent mb-1">
               {score} / {maxScore}
             </div>

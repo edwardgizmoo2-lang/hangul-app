@@ -110,10 +110,10 @@ export default function HangulTab() {
               <button
                 key={c}
                 onClick={() => toggleConsonant(c)}
-                className={`w-8 h-8 rounded-md text-sm font-bold transition-all ${
+                className={`w-8 h-8 rounded-md text-sm font-bold transition-all duration-200 ${
                   selectedConsonants.includes(c)
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'
+                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:shadow-md hover:shadow-purple-500/10'
                 }`}
               >
                 {c}
@@ -126,10 +126,10 @@ export default function HangulTab() {
               <button
                 key={v}
                 onClick={() => toggleVowel(v)}
-                className={`w-8 h-8 rounded-md text-sm font-bold transition-all ${
+                className={`w-8 h-8 rounded-md text-sm font-bold transition-all duration-200 ${
                   selectedVowels.includes(v)
-                    ? 'bg-cyan-600 text-white'
-                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                    ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30'
+                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:shadow-md hover:shadow-cyan-500/10'
                 }`}
               >
                 {v}
@@ -177,18 +177,15 @@ function Section({ title, letters, playLetterAudio, playing }) {
             key={letter.char}
             onClick={() => playLetterAudio(letter.audioFile)}
             disabled={playing === letter.audioFile}
-            className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all active:scale-95 ${
+            className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 ${
               playing === letter.audioFile
-                ? 'border-purple-500 bg-purple-500/20 animate-audio-pulse'
-                : 'border-zinc-800 bg-zinc-900 hover:border-zinc-600 hover:bg-zinc-800'
+                ? 'border-purple-500 bg-purple-500/20 shadow-lg shadow-purple-500/30'
+                : 'border-zinc-800 bg-zinc-900 hover:border-zinc-600 hover:bg-zinc-800 hover:shadow-md hover:shadow-purple-500/10'
             }`}
           >
             <span className="text-3xl font-bold mb-1">{letter.char}</span>
             <span className="text-zinc-300 text-sm font-medium">{letter.romanization}</span>
             <span className="text-zinc-500 text-[10px] mt-0.5">{letter.name} / {letter.audio}</span>
-            {playing === letter.audioFile && (
-              <span className="text-purple-400 text-[10px] mt-1">🔊</span>
-            )}
           </button>
         ))}
       </div>
@@ -229,10 +226,10 @@ function SyllablesView({ syllablesByVowel, speakSyllable }) {
                     key={key}
                     onClick={() => handlePlay(syl, key)}
                     disabled={playingKey === key}
-                    className={`flex flex-col items-center justify-center p-2.5 rounded-xl border-2 transition-all active:scale-95 ${
+                    className={`flex flex-col items-center justify-center p-2.5 rounded-xl border-2 transition-all duration-200 ${
                       playingKey === key
-                        ? 'border-cyan-500 bg-cyan-500/20 animate-audio-pulse'
-                        : 'border-zinc-800 bg-zinc-900 hover:border-zinc-600 hover:bg-zinc-800'
+                        ? 'border-cyan-500 bg-cyan-500/20 shadow-lg shadow-cyan-500/30'
+                        : 'border-zinc-800 bg-zinc-900 hover:border-zinc-600 hover:bg-zinc-800 hover:shadow-md hover:shadow-cyan-500/10'
                     }`}
                   >
                     <span className="text-2xl font-bold">{syl.display}</span>
