@@ -9,6 +9,7 @@ const VOWEL_ORDER = ['ㅏ','ㅑ','ㅓ','ㅕ','ㅗ','ㅛ','ㅜ','ㅠ','ㅡ','ㅣ'
 export default function HangulTab() {
   const [subTab, setSubTab] = useState('letters')
   const [playing, setPlaying] = useState(null)
+  const [filter, setFilter] = useState('')
 
   const syllablesByVowel = useMemo(() => {
     const groups = {}
@@ -19,6 +20,19 @@ export default function HangulTab() {
     })
     return groups
   }, [])
+
+  const filteredByVowel = useMemo(() => {
+    if (!filter.trim()) return syllablesByVowel
+    const q = filter.toLowerCase()
+    const filtered = {}
+    VOWEL_ORDER.forEach(v => {
+      filtered[v] = syllablesByVowel[v].filter(s =>
+        s.romanization.toLowerCase().includes(q) ||
+        s.display.includes(q)
+      )
+    })
+    return filtered
+  }, [filter, syllablesByVowel])
 
   const playLetterAudio = useCallback(async (audioFile) => {
     setPlaying(audioFile)
@@ -67,11 +81,23 @@ export default function HangulTab() {
         </button>
       </div>
 
+      {subTab === 'syllables' && (
+        <div className="px-4 pb-2">
+          <input
+            type="text"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder="Filter by romanization (e.g. ga, myo, hae)..."
+            className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm placeholder:text-zinc-500 focus:outline-none focus:border-purple-500"
+          />
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         {subTab === 'letters' ? (
           <LettersView allConsonants={ALL_CONSONANTS} allVowels={ALL_VOWELS} playLetterAudio={playLetterAudio} playing={playing} />
         ) : (
-          <SyllablesView syllablesByVowel={syllablesByVowel} speakSyllable={speakSyllable} />
+          <SyllablesView syllablesByVowel={filteredByVowel} speakSyllable={speakSyllable} filter={filter} />
         )}
       </div>
     </div>
@@ -113,7 +139,7 @@ function Section({ title, letters, playLetterAudio, playing }) {
   )
 }
 
-function SyllablesView({ syllablesByVowel, speakSyllable }) {
+function SyllablesView({ syllablesByVowel, speakSyllable, filter }) {
   const [playingKey, setPlayingKey] = useState(null)
 
   const handlePlay = useCallback(async (syl, key) => {
@@ -122,8 +148,13 @@ function SyllablesView({ syllablesByVowel, speakSyllable }) {
     setPlayingKey(null)
   }, [speakSyllable])
 
+  const totalFiltered = Object.values(syllablesByVowel).reduce((sum, arr) => sum + arr.length, 0)
+
   return (
     <div className="pt-2 space-y-6">
+      {filter && (
+        <p className="text-zinc-500 text-xs">{totalFiltered} syllables matching "{filter}"</p>
+      )}
       {VOWEL_ORDER.map(vowel => {
         const syls = syllablesByVowel[vowel]
         if (!syls || syls.length === 0) return null
