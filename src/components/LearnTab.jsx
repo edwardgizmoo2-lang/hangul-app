@@ -100,47 +100,25 @@ function LetterGame({ onGameComplete, koreanVoiceAvailable, onBack }) {
   const [showFeedback, setShowFeedback] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState(0)
   const [totalTime, setTotalTime] = useState(0)
-  const [showTTSWarning, setShowTTSWarning] = useState(false)
   const [confirmQuit, setConfirmQuit] = useState(false)
 
   const timerRef = useRef(null)
   const currentLetter = deck[currentIndex]
 
-  const speakKorean = useCallback(async (text) => {
-    if (!('speechSynthesis' in window)) {
-      setShowTTSWarning(true)
-      setTimeout(() => setShowTTSWarning(false), 3000)
-      return
-    }
+  const playAudioFile = useCallback(async (audioFile) => {
     return new Promise((resolve) => {
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.lang = 'ko-KR'
-      utterance.rate = 0.85
-      utterance.pitch = 1
-      utterance.volume = 1
-      utterance.onend = () => resolve()
-      utterance.onerror = () => resolve()
-      speechSynthesis.speak(utterance)
+      const audio = new Audio(`/audio/${audioFile}`)
+      audio.onended = () => resolve()
+      audio.onerror = () => resolve()
+      audio.play().catch(() => resolve())
     })
   }, [])
 
-  const speakRomanization = useCallback(async (text) => {
-    if (!('speechSynthesis' in window)) {
-      setShowTTSWarning(true)
-      setTimeout(() => setShowTTSWarning(false), 3000)
-      return
+  const speakLetter = useCallback(async (letter) => {
+    if (letter?.audioFile) {
+      await playAudioFile(letter.audioFile)
     }
-    return new Promise((resolve) => {
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.lang = 'en-US'
-      utterance.rate = 0.85
-      utterance.pitch = 1
-      utterance.volume = 1
-      utterance.onend = () => resolve()
-      utterance.onerror = () => resolve()
-      speechSynthesis.speak(utterance)
-    })
-  }, [])
+  }, [playAudioFile])
 
   const startTimer = useCallback((seconds) => {
     setTimeRemaining(seconds)
@@ -188,12 +166,8 @@ function LetterGame({ onGameComplete, koreanVoiceAvailable, onBack }) {
     setShowFeedback(true)
     setTypeAnswer(null)
     setSoundAnswer(null)
-    speakLetter(currentLetter.romanization)
-  }, [currentLetter, stopTimer])
-
-  const speakLetter = useCallback(async (text) => {
-    await speakRomanization(text)
-  }, [speakRomanization])
+    speakLetter(currentLetter)
+  }, [currentLetter, stopTimer, speakLetter])
 
   useEffect(() => {
     if (timeRemaining === 0 && timerRef.current && currentLetter && !showFeedback) {
@@ -270,7 +244,7 @@ function LetterGame({ onGameComplete, koreanVoiceAvailable, onBack }) {
     setLetterResults(prev => [...prev, result])
     setScore(prev => prev + points)
     setShowFeedback(true)
-    speakLetter(currentLetter.romanization)
+    speakLetter(currentLetter)
   }, [currentLetter, typeAnswer, soundAnswer, stopTimer, speakLetter])
 
   const handleNext = useCallback(() => {
@@ -314,7 +288,8 @@ function LetterGame({ onGameComplete, koreanVoiceAvailable, onBack }) {
   }, [mode, difficulty, score, deck, letterResults, onGameComplete, confirmQuitGame])
 
   const previewSound = useCallback((romanization) => {
-    speakLetter(romanization)
+    const match = ALL_LETTERS.find(l => l.romanization === romanization)
+    if (match) speakLetter(match)
   }, [speakLetter])
 
   const canSubmit = typeAnswer !== null && soundAnswer !== null
@@ -493,7 +468,7 @@ function LetterGame({ onGameComplete, koreanVoiceAvailable, onBack }) {
             result={letterResults[letterResults.length - 1]}
             letter={currentLetter}
             onNext={handleNext}
-            onSpeak={() => speakLetter(currentLetter.romanization)}
+            onSpeak={() => speakLetter(currentLetter)}
             speaking={false}
           />
         ) : currentLetter ? (
@@ -508,7 +483,6 @@ function LetterGame({ onGameComplete, koreanVoiceAvailable, onBack }) {
             onSubmit={handleSubmit}
             canSubmit={canSubmit}
             speaking={false}
-            showTTSWarning={showTTSWarning}
           />
         ) : null}
       </div>

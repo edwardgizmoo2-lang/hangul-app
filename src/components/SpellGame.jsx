@@ -52,14 +52,9 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
     })
   }, [])
 
-  const speakLetter = useCallback(async (text) => {
-    if (!koreanVoiceAvailable) {
-      setShowTTSWarning(true)
-      setTimeout(() => setShowTTSWarning(false), 3000)
-      return
-    }
+  const speakSyllable = useCallback(async (text) => {
     await speakKorean(text)
-  }, [koreanVoiceAvailable, speakKorean])
+  }, [speakKorean])
 
   const startTimer = useCallback((seconds) => {
     setTimeRemaining(seconds)
@@ -107,7 +102,7 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
     setFeedbackResult(result)
     setResults(prev => [...prev, result])
     setShowFeedback(true)
-    speakLetter(currentSyllable.display)
+    speakSyllable(currentSyllable.display)
   }, [currentSyllable, picked, stopTimer, speakLetter])
 
   const startGame = useCallback((selectedMode, selectedDifficulty = null) => {
@@ -156,7 +151,7 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
     if (picked.length >= currentSyllable.letters.length) return
     const newPicked = [...picked, char]
     setPicked(newPicked)
-    await speakLetter(char)
+    await speakSyllable(char)
   }, [picked, currentSyllable, showFeedback, speakLetter])
 
   const clearPicks = useCallback(() => {
@@ -181,7 +176,7 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
     setResults(prev => [...prev, result])
     setScore(prev => prev + points)
     setShowFeedback(true)
-    speakLetter(currentSyllable.display)
+    speakSyllable(currentSyllable.display)
   }, [currentSyllable, picked, stopTimer, speakLetter])
 
   const handleNext = useCallback(() => {
@@ -389,7 +384,7 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
             result={feedbackResult}
             syllable={currentSyllable}
             onNext={handleNext}
-            onSpeak={() => speakLetter(currentSyllable?.display)}
+            onSpeak={() => speakSyllable(currentSyllable?.display)}
             speaking={false}
           />
         ) : currentSyllable ? (
