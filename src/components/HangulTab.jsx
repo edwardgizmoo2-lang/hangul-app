@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
+import { Virtuoso } from 'react-virtuoso'
 import { consonants, doubleConsonants, vowels, compoundVowels, syllables } from '../data/hangul'
 
 const ALL_CONSONANTS = [...consonants, ...doubleConsonants]
@@ -202,45 +203,56 @@ function SyllablesView({ syllablesByVowel, speakSyllable }) {
     setPlayingKey(null)
   }, [speakSyllable])
 
-  const totalSyllables = Object.values(syllablesByVowel).reduce((sum, arr) => sum + arr.length, 0)
+  const flatItems = useMemo(() => {
+    const items = []
+    VOWEL_ORDER.forEach(vowel => {
+      const syls = syllablesByVowel[vowel]
+      if (!syls || syls.length === 0) return
+      const vowelRoman = syls[0]?.romanization.slice(-1) || vowel
+      items.push({ type: 'header', vowel, roman: vowelRoman, count: syls.length })
+      syls.forEach((syl, idx) => {
+        items.push({ type: 'syllable', syl, key: `${vowel}-${idx}` })
+      })
+    })
+    return items
+  }, [syllablesByVowel])
+
+  const totalSyllables = flatItems.filter(i => i.type === 'syllable').length
+
+  if (totalSyllables === 0) {
+    return <p className="text-zinc-500 text-xs text-center py-4">No syllables match the selected filters</p>
+  }
 
   return (
-    <div className="pt-2 space-y-6">
-      {totalSyllables === 0 && (
-        <p className="text-zinc-500 text-xs text-center py-4">No syllables match the selected filters</p>
-      )}
-      {VOWEL_ORDER.map(vowel => {
-        const syls = syllablesByVowel[vowel]
-        if (!syls || syls.length === 0) return null
-        const vowelRoman = syls[0]?.romanization.slice(-1) || vowel
-        return (
-          <div key={vowel} className="animate-slide-up">
-            <h3 className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-3">
-              {vowel} <span className="text-zinc-600">— {vowelRoman} combinations</span>
+    <Virtuoso
+      totalCount={flatItems.length}
+      overscan={200}
+      itemContent={(index) => {
+        const item = flatItems[index]
+        if (item.type === 'header') {
+          return (
+            <h3 className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2 mt-4 first:mt-0">
+              {item.vowel} <span className="text-zinc-600">— {item.roman} combinations ({item.count})</span>
             </h3>
-            <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-7 gap-2">
-              {syls.map((syl, idx) => {
-                const key = `${vowel}-${idx}`
-                return (
-                  <button
-                    key={key}
-                    onClick={() => handlePlay(syl, key)}
-                    disabled={playingKey === key}
-                    className={`flex flex-col items-center justify-center p-2.5 rounded-xl border-2 transition-all duration-200 ${
-                      playingKey === key
-                        ? 'border-cyan-500 bg-cyan-500/20 shadow-lg shadow-cyan-500/30'
-                        : 'border-zinc-800 bg-zinc-900 hover:border-zinc-600 hover:bg-zinc-800 hover:shadow-md hover:shadow-cyan-500/10'
-                    }`}
-                  >
-                    <span className="text-2xl font-bold">{syl.display}</span>
-                    <span className="text-zinc-400 text-[10px] mt-0.5">{syl.romanization}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
+          )
+        }
+        return (
+          <button
+            key={item.key}
+            onClick={() => handlePlay(item.syl, item.key)}
+            disabled={playingKey === item.key}
+            className={`inline-flex flex-col items-center justify-center p-2.5 rounded-xl border-2 transition-all duration-200 w-[calc(25%-0.375rem)] sm:w-[calc(20%-0.4rem)] md:w-[calc(14.28%-0.43rem)] mb-2 ${
+              playingKey === item.key
+                ? 'border-cyan-500 bg-cyan-500/20 shadow-lg shadow-cyan-500/30'
+                : 'border-zinc-800 bg-zinc-900 hover:border-zinc-600 hover:bg-zinc-800 hover:shadow-md hover:shadow-cyan-500/10'
+            }`}
+          >
+            <span className="text-2xl font-bold">{item.syl.display}</span>
+            <span className="text-zinc-400 text-[10px] mt-0.5">{item.syl.romanization}</span>
+          </button>
         )
-      })}
-    </div>
+      }}
+      style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'flex-start' }}
+    />
   )
 }

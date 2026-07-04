@@ -1,11 +1,12 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import Header from './components/Header'
-import LearnTab from './components/LearnTab'
-import HangulTab from './components/HangulTab'
-import ProgressTab from './components/ProgressTab'
 import ScrollToTopButton from './components/ScrollToTopButton'
+import Loading from './components/Loading'
 import { getStats, getLetterMastery, saveGameSession } from './utils/storage'
-import { isElectron } from './utils/platform'
+
+const LearnTab = lazy(() => import('./components/LearnTab'))
+const HangulTab = lazy(() => import('./components/HangulTab'))
+const ProgressTab = lazy(() => import('./components/ProgressTab'))
 
 function App() {
   const [activeTab, setActiveTab] = useState('learn')
@@ -73,15 +74,17 @@ function App() {
         isMaximized={false}
       />
       <main ref={scrollRef} className="flex-1 overflow-y-auto">
-        {activeTab === 'learn' && (
-          <LearnTab onGameComplete={handleGameComplete} koreanVoiceAvailable={koreanVoiceAvailable} />
-        )}
-        {activeTab === 'hangul' && (
-          <HangulTab />
-        )}
-        {activeTab === 'progress' && (
-          <ProgressTab stats={stats} letterMastery={letterMastery} onRefresh={loadStats} />
-        )}
+        <Suspense fallback={<div className="flex items-center justify-center h-full"><Loading size="lg" /></div>}>
+          {activeTab === 'learn' && (
+            <LearnTab onGameComplete={handleGameComplete} koreanVoiceAvailable={koreanVoiceAvailable} />
+          )}
+          {activeTab === 'hangul' && (
+            <HangulTab />
+          )}
+          {activeTab === 'progress' && (
+            <ProgressTab stats={stats} letterMastery={letterMastery} onRefresh={loadStats} />
+          )}
+        </Suspense>
       </main>
       <ScrollToTopButton scrollRef={scrollRef} />
     </div>

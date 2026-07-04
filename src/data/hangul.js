@@ -6,7 +6,7 @@ export const consonants = [
   { char: 'ㅁ', romanization: 'm', name: '미음', audio: 'mieum', audioFile: 'consonants/ㅁ.ogg', examples: ['마 (ma)', '모 (mo)', '무 (mu)'] },
   { char: 'ㅂ', romanization: 'b/p', name: '비읍', audio: 'bieup', audioFile: 'consonants/ㅂ.ogg', examples: ['바 (ba)', '보 (bo)', '부 (bu)'] },
   { char: 'ㅅ', romanization: 's', name: '시옷', audio: 'siot', audioFile: 'consonants/ㅅ.ogg', examples: ['사 (sa)', '소 (so)', '수 (su)'] },
-  { char: 'ㅇ', romanization: 'ng/silent', name: '이응', audio: 'ieung', audioFile: 'consonants/ㅇ.ogg', examples: ['아 (a)', '오 (o)', '우 (u)'] },
+  { char: 'ㅇ', romanization: 'silent/ng', name: '이응', audio: 'ieung', audioFile: 'consonants/ㅇ.ogg', examples: ['아 (a)', '오 (o)', '우 (u)'] },
   { char: 'ㅈ', romanization: 'j/ch', name: '지읒', audio: 'jieut', audioFile: 'consonants/ㅈ.ogg', examples: ['자 (ja)', '조 (jo)', '주 (ju)'] },
   { char: 'ㅊ', romanization: 'ch', name: '치읓', audio: 'chieut', audioFile: 'consonants/ㅊ.ogg', examples: ['차 (cha)', '초 (cho)', '추 (chu)'] },
   { char: 'ㅋ', romanization: 'k', name: '키읔', audio: 'kieuk', audioFile: 'consonants/ㅋ.ogg', examples: ['카 (ka)', '코 (ko)', '쿠 (ku)'] },
