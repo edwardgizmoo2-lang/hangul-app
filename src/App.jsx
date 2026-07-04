@@ -49,6 +49,7 @@ function App() {
         check()
       } else {
         speechSynthesis.onvoiceschanged = check
+        setTimeout(() => setKoreanVoiceAvailable(true), 3000)
       }
     }
   }
