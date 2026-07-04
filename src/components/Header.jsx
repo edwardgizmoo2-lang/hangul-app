@@ -26,9 +26,12 @@ export default function Header({ activeTab, onTabChange, onMinimize, onMaximize,
             >
               <svg className="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isMaximized ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 9V5a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H8a2 2 0 01-2-2V9m0 0l6 6m0 0l-6-6m6 6H4" />
+                  <>
+                    <rect x="6" y="5" width="9" height="9" rx="1.5" strokeWidth="1.5" />
+                    <rect x="9" y="10" width="9" height="9" rx="1.5" strokeWidth="1.5" />
+                  </>
                 ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H8a2 2 0 01-2-2V8m0 0l-6 6m6-6l6 6m-6-6h12" />
+                  <rect x="4" y="4" width="16" height="16" rx="2" strokeWidth="2" />
                 )}
               </svg>
             </button>
