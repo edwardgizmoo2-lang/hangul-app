@@ -67,6 +67,18 @@ export default function Header({ activeTab, onTabChange, onMinimize, onMaximize,
           </button>
           <button
             role="tab"
+            aria-selected={activeTab === 'hangul'}
+            onClick={() => onTabChange('hangul')}
+            className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${!electron ? '' : '-webkit-app-region:no-drag'} ${
+              activeTab === 'hangul'
+                ? 'bg-purple-600 text-white shadow-sm shadow-purple-500/20'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+            }`}
+          >
+            Hangul
+          </button>
+          <button
+            role="tab"
             aria-selected={activeTab === 'progress'}
             onClick={() => onTabChange('progress')}
             className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${!electron ? '' : '-webkit-app-region:no-drag'} ${

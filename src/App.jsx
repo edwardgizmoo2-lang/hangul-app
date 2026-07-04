@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Header from './components/Header'
 import LearnTab from './components/LearnTab'
+import HangulTab from './components/HangulTab'
 import ProgressTab from './components/ProgressTab'
 import { getStats, getLetterMastery, saveGameSession } from './utils/storage'
 import { isElectron } from './utils/platform'
@@ -72,6 +73,9 @@ function App() {
       <main className="flex-1 overflow-y-auto">
         {activeTab === 'learn' && (
           <LearnTab onGameComplete={handleGameComplete} koreanVoiceAvailable={koreanVoiceAvailable} />
+        )}
+        {activeTab === 'hangul' && (
+          <HangulTab />
         )}
         {activeTab === 'progress' && (
           <ProgressTab stats={stats} letterMastery={letterMastery} onRefresh={loadStats} />
