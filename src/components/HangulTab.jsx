@@ -58,7 +58,7 @@ export default function HangulTab() {
   const playLetterAudio = useCallback(async (audioFile) => {
     setPlaying(audioFile)
     return new Promise((resolve) => {
-      const audio = new Audio(`/audio/${audioFile}`)
+      const audio = new Audio(`audio/${audioFile}`)
       audio.onended = () => { setPlaying(null); resolve() }
       audio.onerror = () => { setPlaying(null); resolve() }
       audio.play().catch(() => { setPlaying(null); resolve() })

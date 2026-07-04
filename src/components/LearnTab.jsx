@@ -101,7 +101,7 @@ function LetterGame({ onGameComplete, onBack }) {
 
   const playAudioFile = useCallback(async (audioFile) => {
     return new Promise((resolve) => {
-      const audio = new Audio(`/audio/${audioFile}`)
+      const audio = new Audio(`audio/${audioFile}`)
       audio.onended = () => resolve()
       audio.onerror = () => resolve()
       audio.play().catch(() => resolve())
@@ -115,7 +115,7 @@ function LetterGame({ onGameComplete, onBack }) {
   }, [playAudioFile])
 
   const playSfx = useCallback((type) => {
-    const audio = new Audio(`/audio/sfx/${type}.mp3`)
+    const audio = new Audio(`audio/sfx/${type}.mp3`)
     audio.play().catch(() => {})
   }, [])
 

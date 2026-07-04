@@ -60,7 +60,7 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
   }, [speakKorean])
 
   const playSfx = useCallback((type) => {
-    const audio = new Audio(`/audio/sfx/${type}.mp3`)
+    const audio = new Audio(`audio/sfx/${type}.mp3`)
     audio.play().catch(() => {})
   }, [])
 
@@ -158,7 +158,7 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
     const audioFile = AUDIO_MAP[char]
     if (!audioFile) return
     return new Promise((resolve) => {
-      const audio = new Audio(`/audio/${audioFile}`)
+      const audio = new Audio(`audio/${audioFile}`)
       audio.onended = () => resolve()
       audio.onerror = () => resolve()
       audio.play().catch(() => resolve())
