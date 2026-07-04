@@ -241,6 +241,19 @@
   }
 }
 
+/* Larger text on mobile */
+@media (max-width: 640px) {
+  .text-\[10px\] {
+    font-size: 11px !important;
+  }
+  .text-xs {
+    font-size: 13px !important;
+  }
+  .text-\[11px\] {
+    font-size: 12px !important;
+  }
+}
+
 /* Capacitor status bar padding */
 html[data-capacitor] {
   padding-top: 0;
