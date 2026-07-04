@@ -257,7 +257,7 @@ function StatCard({ title, value, icon, color, subtitle }) {
   }
 
   return (
-    <div className={`card border p-3 ${colorMap[color] || colorMap.purple}`}>
+    <div className={`card border p-3 transition-all hover:scale-[1.02] ${colorMap[color] || colorMap.purple}`}>
       <div className="flex items-start justify-between mb-1">
         <p className="text-[10px] font-medium text-zinc-400">{title}</p>
         <span className="w-5 h-5 flex items-center justify-center rounded bg-black/20">
@@ -281,7 +281,7 @@ function SummaryCard({ title, value, total, color }) {
   const percentage = total > 0 ? Math.round((value / total) * 100) : 0
 
   return (
-    <div className={`card border p-3 ${c.border} text-center`}>
+    <div className={`card border p-3 ${c.border} text-center transition-all hover:scale-[1.02]`}>
       <p className={`text-xl font-bold ${c.text}`}>{value}</p>
       <p className="text-zinc-500 text-[10px]">{title}</p>
       <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden mt-2">

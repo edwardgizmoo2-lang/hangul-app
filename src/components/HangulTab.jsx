@@ -231,7 +231,7 @@ function SyllablesView({ syllablesByVowel, speakSyllable }) {
                     disabled={playingKey === key}
                     className={`flex flex-col items-center justify-center p-2.5 rounded-xl border-2 transition-all active:scale-95 ${
                       playingKey === key
-                        ? 'border-cyan-500 bg-cyan-500/20'
+                        ? 'border-cyan-500 bg-cyan-500/20 animate-audio-pulse'
                         : 'border-zinc-800 bg-zinc-900 hover:border-zinc-600 hover:bg-zinc-800'
                     }`}
                   >
