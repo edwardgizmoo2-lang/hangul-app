@@ -5,6 +5,7 @@ export default function LetterCard({
   soundAnswer, 
   onTypeSelect, 
   onSoundSelect, 
+  onSoundPreview,
   onSubmit, 
   canSubmit, 
   speaking,
@@ -44,7 +45,10 @@ export default function LetterCard({
               {soundOptions.map((option, i) => (
                 <button
                   key={i}
-                  onClick={() => onSoundSelect(option)}
+                  onClick={() => {
+                    onSoundSelect(option)
+                    onSoundPreview(option)
+                  }}
                   className={`px-4 py-2.5 rounded-lg border-2 font-medium text-sm transition-all ${
                     soundAnswer === option
                       ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400 shadow-lg shadow-cyan-500/10'

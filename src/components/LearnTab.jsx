@@ -304,6 +304,13 @@ function LetterGame({ onGameComplete, koreanVoiceAvailable, onBack }) {
     confirmQuitGame()
   }, [mode, difficulty, score, deck, letterResults, onGameComplete, confirmQuitGame])
 
+  const previewSound = useCallback((romanization) => {
+    const match = ALL_LETTERS.find(l => l.romanization === romanization)
+    if (match) {
+      speakLetter(match.character || match.char)
+    }
+  }, [speakLetter])
+
   const canSubmit = typeAnswer !== null && soundAnswer !== null
 
   // Start Screen
@@ -491,6 +498,7 @@ function LetterGame({ onGameComplete, koreanVoiceAvailable, onBack }) {
             soundAnswer={soundAnswer}
             onTypeSelect={selectTypeAnswer}
             onSoundSelect={selectSoundAnswer}
+            onSoundPreview={previewSound}
             onSubmit={handleSubmit}
             canSubmit={canSubmit}
             speaking={false}

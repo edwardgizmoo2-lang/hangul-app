@@ -106,7 +106,7 @@ function createWindow(): BrowserWindow {
       contextIsolation: true,
       sandbox: true,
     },
-    icon: join(__dirname, '../assets/icon.ico'),
+    icon: join(__dirname, '../../assets/icon.ico'),
   })
 
   if (isDev) {
