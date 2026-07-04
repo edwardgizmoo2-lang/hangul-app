@@ -56,7 +56,50 @@ async function generate() {
     console.log(`  Android ${density}: ${size}px`)
   }
 
-  console.log('\nDone! Android icons generated from icon.ico')
+  // Generate splash screen images (centered icon on dark background)
+  const splashSizes = {
+    'mdpi': 320,
+    'hdpi': 480,
+    'xhdpi': 640,
+    'xxhdpi': 960,
+    'xxxhdpi': 1280,
+  }
+
+  for (const [density, size] of Object.entries(splashSizes)) {
+    const dir = join(ROOT, 'android', 'app', 'src', 'main', 'res', `drawable-port-${density}`)
+    await ensureDir(dir)
+    const landDir = join(ROOT, 'android', 'app', 'src', 'main', 'res', `drawable-land-${density}`)
+    await ensureDir(landDir)
+
+    const iconSize = Math.round(size * 0.25)
+    const resizedIcon = await sharp(pngBuffer).resize(iconSize, iconSize).toBuffer()
+
+    await sharp({
+      create: { width: size, height: size, channels: 4, background: { r: 18, g: 18, b: 20, alpha: 1 } }
+    }).composite([{ input: resizedIcon, top: Math.round((size - iconSize) / 2), left: Math.round((size - iconSize) / 2) }])
+      .png().toFile(join(dir, 'splash.png'))
+
+    const landHeight = Math.round(size * 0.5625)
+    await sharp({
+      create: { width: size, height: landHeight, channels: 4, background: { r: 18, g: 18, b: 20, alpha: 1 } }
+    }).composite([{ input: resizedIcon, top: Math.round((landHeight - iconSize) / 2), left: Math.round((size - iconSize) / 2) }])
+      .png().toFile(join(landDir, 'splash.png'))
+
+    console.log(`  Splash ${density}: ${size}px`)
+  }
+
+  // Default drawable splash
+  const defaultDir = join(ROOT, 'android', 'app', 'src', 'main', 'res', 'drawable')
+  await ensureDir(defaultDir)
+  const defaultIcon = await sharp(pngBuffer).resize(160, 160).toBuffer()
+  await sharp({
+    create: { width: 640, height: 640, channels: 4, background: { r: 18, g: 18, b: 20, alpha: 1 } }
+  }).composite([{ input: defaultIcon, top: 240, left: 240 }])
+    .png().toFile(join(defaultDir, 'splash.png'))
+
+  console.log('  Splash default: 640px')
+
+  console.log('\nDone! Android icons and splash screens generated from icon.ico')
 }
 
 generate().catch(err => {
