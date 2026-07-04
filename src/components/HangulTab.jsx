@@ -169,7 +169,7 @@ function LettersView({ allConsonants, allVowels, playLetterAudio, playing }) {
 
 function Section({ title, letters, playLetterAudio, playing }) {
   return (
-    <div>
+    <div className="animate-slide-up">
       <h3 className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-3">{title}</h3>
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
         {letters.map((letter) => (
@@ -214,7 +214,7 @@ function SyllablesView({ syllablesByVowel, speakSyllable }) {
         if (!syls || syls.length === 0) return null
         const vowelRoman = syls[0]?.romanization.slice(-1) || vowel
         return (
-          <div key={vowel}>
+          <div key={vowel} className="animate-slide-up">
             <h3 className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-3">
               {vowel} <span className="text-zinc-600">— {vowelRoman} combinations</span>
             </h3>

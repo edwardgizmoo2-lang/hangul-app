@@ -261,7 +261,7 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
             </div>
           )}
 
-          <div className="card text-left p-4 max-w-md mx-auto mb-6">
+          <div className="card text-left p-4 max-w-md mx-auto mb-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
             <div className="flex items-start gap-3">
               <div className="text-2xl">🔤</div>
               <div>
@@ -278,13 +278,15 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
           <div className="grid grid-cols-2 gap-3 max-w-md mx-auto mb-4">
             <button
               onClick={() => setScreen('difficulty-select')}
-              className="py-3 px-6 bg-gradient-to-r from-amber-600 to-orange-600 text-white font-bold text-sm rounded-lg hover:from-amber-500 hover:to-orange-500 transition-all shadow-lg shadow-amber-500/25"
+              className="py-3 px-6 bg-gradient-to-r from-amber-600 to-orange-600 text-white font-bold text-sm rounded-lg hover:from-amber-500 hover:to-orange-500 transition-all shadow-lg shadow-amber-500/25 animate-slide-up"
+              style={{ animationDelay: '200ms' }}
             >
               ⏱️ Timer Mode
             </button>
             <button
               onClick={() => startGame('freeplay')}
-              className="py-3 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-sm rounded-lg hover:from-emerald-500 hover:to-teal-500 transition-all shadow-lg shadow-emerald-500/25"
+              className="py-3 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-sm rounded-lg hover:from-emerald-500 hover:to-teal-500 transition-all shadow-lg shadow-emerald-500/25 animate-slide-up"
+              style={{ animationDelay: '300ms' }}
             >
               🧘 Freeplay Mode
             </button>
@@ -311,11 +313,12 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
           <h2 className="text-xl font-bold mb-1">Select Difficulty</h2>
           <p className="text-zinc-400 mb-5 text-sm">Time per syllable to spell</p>
           <div className="space-y-2">
-            {Object.entries(difficultySettings).map(([key, settings]) => (
+            {Object.entries(difficultySettings).map(([key, settings], i) => (
               <button
                 key={key}
                 onClick={() => startGame('timer', key)}
-                className="w-full p-3 bg-zinc-900/50 border border-zinc-800 rounded-lg hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group"
+                className="w-full p-3 bg-zinc-900/50 border border-zinc-800 rounded-lg hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group animate-slide-up"
+                style={{ animationDelay: `${i * 80}ms` }}
               >
                 <span className="text-sm font-semibold text-white group-hover:text-amber-400">{settings.label}</span>
                 <div className="flex items-center justify-center gap-2 mt-1.5">
@@ -347,7 +350,7 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
           <h2 className="text-2xl font-bold mb-1">Spell Complete!</h2>
           <p className="text-zinc-400 mb-5 text-sm">{mode === 'timer' ? 'Timer Mode' : 'Freeplay'}</p>
 
-          <div className="card p-4 mb-5">
+          <div className="card p-4 mb-5 animate-slide-up" style={{ animationDelay: '100ms' }}>
             <div className="text-3xl font-bold bg-gradient-to-r from-amber-400 to-red-400 bg-clip-text text-transparent mb-1">
               {score} / {maxScore}
             </div>
@@ -358,11 +361,11 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-5">
-            <div className="card p-3 text-center">
+            <div className="card p-3 text-center animate-scale-in" style={{ animationDelay: '200ms' }}>
               <div className="text-lg font-bold text-green-400">{correctCount}</div>
               <div className="text-zinc-500 text-xs">Correct</div>
             </div>
-            <div className="card p-3 text-center">
+            <div className="card p-3 text-center animate-scale-in" style={{ animationDelay: '300ms' }}>
               <div className="text-lg font-bold text-red-400">{deck.length - correctCount}</div>
               <div className="text-zinc-500 text-xs">Missed</div>
             </div>

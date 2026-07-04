@@ -141,12 +141,14 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
             value={totalScore}
             icon={<ScoreIcon />}
             color="purple"
+            index={0}
           />
           <StatCard
             title="Games"
             value={totalGames}
             icon={<GamesIcon />}
             color="cyan"
+            index={1}
           />
           <StatCard
             title="Streak"
@@ -154,12 +156,14 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
             icon={<StreakIcon />}
             color="emerald"
             subtitle={streak > 0 ? `Best: ${longestStreak}d` : 'Start today!'}
+            index={2}
           />
           <StatCard
             title="Avg Score"
             value={avgScore}
             icon={<AvgIcon />}
             color="amber"
+            index={3}
           />
         </div>
 
@@ -170,18 +174,21 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
             value={masteredCount}
             total={ALL_LETTERS.length}
             color="emerald"
+            index={0}
           />
           <SummaryCard
             title="In Progress"
             value={learningCount}
             total={ALL_LETTERS.length}
             color="amber"
+            index={1}
           />
           <SummaryCard
             title="Unattempted"
             value={unattemptedCount}
             total={ALL_LETTERS.length}
             color="zinc"
+            index={2}
           />
         </div>
 
@@ -210,7 +217,7 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
         </div>
 
         {/* Letter Mastery Grid/List */}
-        <div className="card p-4">
+        <div className="card p-4 animate-slide-up" style={{ animationDelay: '400ms' }}>
           {viewMode === 'grid' ? (
             <LetterGrid letters={letterProgress} />
           ) : (
@@ -248,7 +255,7 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
   )
 }
 
-function StatCard({ title, value, icon, color, subtitle }) {
+function StatCard({ title, value, icon, color, subtitle, index = 0 }) {
   const colorMap = {
     purple: 'border-purple-500/30 bg-purple-500/10',
     cyan: 'border-cyan-500/30 bg-cyan-500/10',
@@ -257,7 +264,7 @@ function StatCard({ title, value, icon, color, subtitle }) {
   }
 
   return (
-    <div className={`card border p-3 transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/10 ${colorMap[color] || colorMap.purple}`}>
+    <div className={`card border p-3 transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/10 ${colorMap[color] || colorMap.purple} animate-scale-in`} style={{ animationDelay: `${index * 80}ms` }}>
       <div className="flex items-start justify-between mb-1">
         <p className="text-[10px] font-medium text-zinc-400">{title}</p>
         <span className="w-5 h-5 flex items-center justify-center rounded bg-black/20">
@@ -270,7 +277,7 @@ function StatCard({ title, value, icon, color, subtitle }) {
   )
 }
 
-function SummaryCard({ title, value, total, color }) {
+function SummaryCard({ title, value, total, color, index = 0 }) {
   const colorMap = {
     emerald: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/30' },
     amber: { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/30' },
@@ -281,7 +288,7 @@ function SummaryCard({ title, value, total, color }) {
   const percentage = total > 0 ? Math.round((value / total) * 100) : 0
 
   return (
-    <div className={`card border p-3 ${c.border} text-center transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/10`}>
+    <div className={`card border p-3 ${c.border} text-center transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/10 animate-scale-in`} style={{ animationDelay: `${(index + 4) * 80}ms` }}>
       <p className={`text-xl font-bold ${c.text}`}>{value}</p>
       <p className="text-zinc-500 text-[10px]">{title}</p>
       <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden mt-2">

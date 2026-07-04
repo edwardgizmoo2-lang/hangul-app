@@ -308,12 +308,12 @@ function LetterGame({ onGameComplete, onBack }) {
           </p>
 
           <div className="grid grid-cols-2 gap-3 max-w-md mx-auto mb-6">
-            <div className="card text-left p-4 transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/10">
+            <div className="card text-left p-4 transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/10 animate-slide-up" style={{ animationDelay: '100ms' }}>
               <div className="text-xl mb-1">⏱️</div>
               <h3 className="text-white font-semibold text-sm mb-0.5">Timer Mode</h3>
               <p className="text-zinc-500 text-xs">Race against the clock</p>
             </div>
-            <div className="card text-left p-4 transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/10">
+            <div className="card text-left p-4 transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/10 animate-slide-up" style={{ animationDelay: '200ms' }}>
               <div className="text-xl mb-1">🧘</div>
               <h3 className="text-white font-semibold text-sm mb-0.5">Freeplay Mode</h3>
               <p className="text-zinc-500 text-xs">Learn at your own pace</p>
@@ -357,11 +357,12 @@ function LetterGame({ onGameComplete, onBack }) {
           <p className="text-zinc-400 mb-5 text-sm">Choose how much time you get per letter</p>
 
           <div className="space-y-2">
-            {Object.entries(difficultySettings).map(([key, settings]) => (
+            {Object.entries(difficultySettings).map(([key, settings], i) => (
               <button
                 key={key}
                 onClick={() => startGame('timer', key)}
-                className="w-full p-3 bg-zinc-900/50 border border-zinc-800 rounded-lg hover:border-purple-500/50 hover:bg-zinc-800/50 transition-all group"
+                className="w-full p-3 bg-zinc-900/50 border border-zinc-800 rounded-lg hover:border-purple-500/50 hover:bg-zinc-800/50 transition-all group animate-slide-up"
+                style={{ animationDelay: `${i * 80}ms` }}
               >
                 <span className="text-sm font-semibold text-white group-hover:text-purple-400">{settings.label}</span>
                 <div className="flex items-center justify-center gap-2 mt-1.5">
@@ -412,11 +413,11 @@ function LetterGame({ onGameComplete, onBack }) {
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-5">
-            <div className="card p-3 text-center">
+            <div className="card p-3 text-center animate-scale-in" style={{ animationDelay: '150ms' }}>
               <div className="text-lg font-bold text-green-400">{typeCorrectCount}</div>
               <div className="text-zinc-500 text-xs">Type Correct</div>
             </div>
-            <div className="card p-3 text-center">
+            <div className="card p-3 text-center animate-scale-in" style={{ animationDelay: '250ms' }}>
               <div className="text-lg font-bold text-cyan-400">{soundCorrectCount}</div>
               <div className="text-zinc-500 text-xs">Sound Correct</div>
             </div>
