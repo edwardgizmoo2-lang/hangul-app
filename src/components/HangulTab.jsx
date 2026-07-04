@@ -73,6 +73,7 @@ export default function HangulTab() {
   const speakSyllable = useCallback(async (text) => {
     return new Promise((resolve) => {
       if (!('speechSynthesis' in window)) { resolve(); return }
+      speechSynthesis.cancel()
       const u = new SpeechSynthesisUtterance(text)
       u.lang = 'ko-KR'
       u.rate = 0.85

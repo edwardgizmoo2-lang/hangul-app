@@ -44,6 +44,7 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
       return
     }
     return new Promise((resolve) => {
+      speechSynthesis.cancel()
       const u = new SpeechSynthesisUtterance(text)
       u.lang = 'ko-KR'
       u.rate = 0.85
