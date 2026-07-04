@@ -33,7 +33,7 @@ export default function LearnTab({ onGameComplete, koreanVoiceAvailable }) {
   }
 
   if (gameType === 'letter') {
-    return <LetterGame onGameComplete={onGameComplete} koreanVoiceAvailable={koreanVoiceAvailable} onBack={() => setGameType(null)} />
+    return <LetterGame onGameComplete={onGameComplete} onBack={() => setGameType(null)} />
   }
 
   // Game Type Selection
@@ -47,12 +47,6 @@ export default function LearnTab({ onGameComplete, koreanVoiceAvailable }) {
         <p className="text-zinc-400 mb-6 text-sm leading-relaxed max-w-md mx-auto">
           Choose a game mode to start learning.
         </p>
-
-        {!koreanVoiceAvailable && (
-          <div className="mb-4 p-3 bg-amber-900/30 border border-amber-600/30 rounded-lg text-amber-300 text-xs max-w-sm mx-auto">
-            Korean TTS voice not detected. Install Korean language pack in Windows Settings.
-          </div>
-        )}
 
         <div className="grid grid-cols-1 gap-3 max-w-sm mx-auto">
           <button
@@ -86,7 +80,7 @@ export default function LearnTab({ onGameComplete, koreanVoiceAvailable }) {
   )
 }
 
-function LetterGame({ onGameComplete, koreanVoiceAvailable, onBack }) {
+function LetterGame({ onGameComplete, onBack }) {
   const [screen, setScreen] = useState('start') // 'start' | 'mode-select' | 'difficulty-select' | 'playing' | 'feedback' | 'complete'
   const [mode, setMode] = useState(null) // 'timer' | 'freeplay'
   const [difficulty, setDifficulty] = useState(null)
