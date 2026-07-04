@@ -83,7 +83,7 @@ export default function HangulTab() {
   }, [])
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden">
       <div className="flex items-center gap-2 px-4 pt-3 pb-2">
         <button
           onClick={() => setSubTab('letters')}
