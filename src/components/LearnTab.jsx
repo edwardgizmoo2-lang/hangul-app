@@ -42,7 +42,7 @@ export default function LearnTab({ onGameComplete, koreanVoiceAvailable }) {
       <div className="text-center max-w-lg w-full animate-fade-in">
         <div className="text-5xl mb-3 font-hangul opacity-80">한글</div>
         <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
-          Hangul Master
+          Hangul Learn
         </h1>
         <p className="text-zinc-400 mb-6 text-sm leading-relaxed max-w-md mx-auto">
           Choose a game mode to start learning.

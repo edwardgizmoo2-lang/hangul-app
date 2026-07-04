@@ -1,5 +1,4 @@
 import { useState, useCallback, useMemo } from 'react'
-import { Virtuoso } from 'react-virtuoso'
 import { consonants, doubleConsonants, vowels, compoundVowels, syllables } from '../data/hangul'
 
 const ALL_CONSONANTS = [...consonants, ...doubleConsonants]
@@ -13,6 +12,7 @@ export default function HangulTab() {
   const [playing, setPlaying] = useState(null)
   const [selectedConsonants, setSelectedConsonants] = useState([])
   const [selectedVowels, setSelectedVowels] = useState([])
+  const [showBatchim, setShowBatchim] = useState(false)
 
   const toggleConsonant = (c) => {
     setSelectedConsonants(prev =>
@@ -37,11 +37,12 @@ export default function HangulTab() {
     const groups = {}
     VOWEL_ORDER.forEach(v => { groups[v] = [] })
     syllables.forEach(syl => {
+      if (!showBatchim && syl.letters.length > 2) return
       const vowel = syl.letters[1]
       if (groups[vowel]) groups[vowel].push(syl)
     })
     return groups
-  }, [])
+  }, [showBatchim])
 
   const filteredByVowel = useMemo(() => {
     if (!hasFilters) return syllablesByVowel
@@ -145,6 +146,19 @@ export default function HangulTab() {
               </button>
             )}
           </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowBatchim(!showBatchim)}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 ${
+                showBatchim
+                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'
+                  : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+              }`}
+            >
+              {showBatchim ? 'Batchim ON' : 'Batchim OFF'}
+            </button>
+            <span className="text-zinc-600 text-[10px]">3-letter syllables</span>
+          </div>
         </div>
       )}
 
@@ -203,37 +217,25 @@ function SyllablesView({ syllablesByVowel, speakSyllable }) {
     setPlayingKey(null)
   }, [speakSyllable])
 
-  const sections = useMemo(() => {
-    const result = []
-    VOWEL_ORDER.forEach(vowel => {
-      const syls = syllablesByVowel[vowel]
-      if (!syls || syls.length === 0) return
-      const vowelRoman = syls[0]?.romanization.slice(-1) || vowel
-      result.push({ vowel, roman: vowelRoman, count: syls.length, syllables: syls })
-    })
-    return result
-  }, [syllablesByVowel])
-
-  const totalSyllables = sections.reduce((sum, s) => sum + s.count, 0)
-
-  if (totalSyllables === 0) {
-    return <p className="text-zinc-500 text-xs text-center py-4">No syllables match the selected filters</p>
-  }
+  const totalSyllables = Object.values(syllablesByVowel).reduce((sum, arr) => sum + arr.length, 0)
 
   return (
-    <Virtuoso
-      totalCount={sections.length}
-      overscan={200}
-      itemContent={(index) => {
-        const section = sections[index]
+    <div className="pt-2 space-y-6">
+      {totalSyllables === 0 && (
+        <p className="text-zinc-500 text-xs text-center py-4">No syllables match the selected filters</p>
+      )}
+      {VOWEL_ORDER.map(vowel => {
+        const syls = syllablesByVowel[vowel]
+        if (!syls || syls.length === 0) return null
+        const vowelRoman = syls[0]?.romanization.slice(-1) || vowel
         return (
-          <div className="mb-5 animate-slide-up">
-            <h3 className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">
-              {section.vowel} <span className="text-zinc-600">— {section.roman} combinations ({section.count})</span>
+          <div key={vowel} className="animate-slide-up">
+            <h3 className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-3">
+              {vowel} <span className="text-zinc-600">— {vowelRoman} combinations ({syls.length})</span>
             </h3>
             <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-7 gap-2">
-              {section.syllables.map((syl, idx) => {
-                const key = `${section.vowel}-${idx}`
+              {syls.map((syl, idx) => {
+                const key = `${vowel}-${idx}`
                 return (
                   <button
                     key={key}
@@ -253,7 +255,7 @@ function SyllablesView({ syllablesByVowel, speakSyllable }) {
             </div>
           </div>
         )
-      }}
-    />
+      })}
+    </div>
   )
 }
