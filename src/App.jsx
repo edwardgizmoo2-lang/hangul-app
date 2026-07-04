@@ -86,7 +86,7 @@ function App() {
           )}
         </Suspense>
       </main>
-      <ScrollToTopButton scrollRef={scrollRef} />
+      {activeTab !== 'hangul' && <ScrollToTopButton scrollRef={scrollRef} />}
     </div>
   )
 }

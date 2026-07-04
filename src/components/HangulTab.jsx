@@ -1,4 +1,5 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useRef } from 'react'
+import { Virtuoso } from 'react-virtuoso'
 import { consonants, doubleConsonants, vowels, compoundVowels, syllables } from '../data/hangul'
 
 const ALL_CONSONANTS = [...consonants, ...doubleConsonants]
@@ -13,6 +14,8 @@ export default function HangulTab() {
   const [selectedConsonants, setSelectedConsonants] = useState([])
   const [selectedVowels, setSelectedVowels] = useState([])
   const [showBatchim, setShowBatchim] = useState(false)
+  const [showScrollTop, setShowScrollTop] = useState(false)
+  const virtuosoRef = useRef(null)
 
   const toggleConsonant = (c) => {
     setSelectedConsonants(prev =>
@@ -162,13 +165,32 @@ export default function HangulTab() {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
-        {subTab === 'letters' ? (
+      {subTab === 'letters' ? (
+        <div className="flex-1 overflow-y-auto px-4 pb-4">
           <LettersView allConsonants={ALL_CONSONANTS} allVowels={ALL_VOWELS} playLetterAudio={playLetterAudio} playing={playing} />
-        ) : (
-          <SyllablesView syllablesByVowel={filteredByVowel} speakSyllable={speakSyllable} />
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="flex-1 px-4 pb-4">
+          <SyllablesView
+            syllablesByVowel={filteredByVowel}
+            speakSyllable={speakSyllable}
+            virtuosoRef={virtuosoRef}
+            onScrollChange={setShowScrollTop}
+          />
+        </div>
+      )}
+
+      {showScrollTop && (
+        <button
+          onClick={() => virtuosoRef.current?.scrollToIndex({ index: 0, align: 'start' })}
+          className="fixed z-50 w-11 h-11 rounded-full bg-purple-600 text-white shadow-lg shadow-purple-500/30 flex items-center justify-center transition-all duration-200 hover:bg-purple-500 hover:shadow-xl hover:shadow-purple-500/40 active:scale-95 animate-fade-in bottom-6 right-6"
+          aria-label="Scroll to top"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" />
+          </svg>
+        </button>
+      )}
     </div>
   )
 }
@@ -208,7 +230,7 @@ function Section({ title, letters, playLetterAudio, playing }) {
   )
 }
 
-function SyllablesView({ syllablesByVowel, speakSyllable }) {
+function SyllablesView({ syllablesByVowel, speakSyllable, virtuosoRef, onScrollChange }) {
   const [playingKey, setPlayingKey] = useState(null)
 
   const handlePlay = useCallback(async (syl, key) => {
@@ -217,25 +239,41 @@ function SyllablesView({ syllablesByVowel, speakSyllable }) {
     setPlayingKey(null)
   }, [speakSyllable])
 
-  const totalSyllables = Object.values(syllablesByVowel).reduce((sum, arr) => sum + arr.length, 0)
+  const sections = useMemo(() => {
+    const result = []
+    VOWEL_ORDER.forEach(vowel => {
+      const syls = syllablesByVowel[vowel]
+      if (!syls || syls.length === 0) return
+      const vowelRoman = syls[0]?.romanization.slice(-1) || vowel
+      result.push({ vowel, roman: vowelRoman, count: syls.length, syllables: syls })
+    })
+    return result
+  }, [syllablesByVowel])
+
+  const totalSyllables = sections.reduce((sum, s) => sum + s.count, 0)
+
+  if (totalSyllables === 0) {
+    return <p className="text-zinc-500 text-xs text-center py-4">No syllables match the selected filters</p>
+  }
 
   return (
-    <div className="pt-2 space-y-6">
-      {totalSyllables === 0 && (
-        <p className="text-zinc-500 text-xs text-center py-4">No syllables match the selected filters</p>
-      )}
-      {VOWEL_ORDER.map(vowel => {
-        const syls = syllablesByVowel[vowel]
-        if (!syls || syls.length === 0) return null
-        const vowelRoman = syls[0]?.romanization.slice(-1) || vowel
+    <Virtuoso
+      ref={virtuosoRef}
+      totalCount={sections.length}
+      overscan={300}
+      onScroll={(e) => {
+        onScrollChange(e.target.scrollTop > 300)
+      }}
+      itemContent={(index) => {
+        const section = sections[index]
         return (
-          <div key={vowel} className="animate-slide-up">
-            <h3 className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-3">
-              {vowel} <span className="text-zinc-600">— {vowelRoman} combinations ({syls.length})</span>
+          <div className="mb-5">
+            <h3 className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-3 pt-2">
+              {section.vowel} <span className="text-zinc-600">— {section.roman} combinations ({section.count})</span>
             </h3>
             <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-7 gap-2">
-              {syls.map((syl, idx) => {
-                const key = `${vowel}-${idx}`
+              {section.syllables.map((syl, idx) => {
+                const key = `${section.vowel}-${idx}`
                 return (
                   <button
                     key={key}
@@ -255,7 +293,7 @@ function SyllablesView({ syllablesByVowel, speakSyllable }) {
             </div>
           </div>
         )
-      })}
-    </div>
+      }}
+    />
   )
 }
