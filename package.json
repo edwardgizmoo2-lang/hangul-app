@@ -41,6 +41,7 @@
     "vite": "^5.0.10",
     "wait-on": "^7.2.0"
   },
+  "author": "Hangul Learn",
   "build": {
     "appId": "com.hangul.app",
     "productName": "Hangul Learn",
@@ -54,8 +55,10 @@
     ],
     "win": {
       "target": "nsis",
+      "icon": "assets/icon.ico",
       "sign": false,
-      "signAndEditExecutable": false
+      "signAndEditExecutable": false,
+      "verifyUpdateCodeSignature": false
     },
     "nsis": {
       "oneClick": false,
