@@ -4,12 +4,33 @@ import { consonants, doubleConsonants, vowels, compoundVowels, syllables } from 
 const ALL_CONSONANTS = [...consonants, ...doubleConsonants]
 const ALL_VOWELS = [...vowels, ...compoundVowels]
 
+const CONSONANT_ORDER = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ']
 const VOWEL_ORDER = ['ㅏ','ㅑ','ㅓ','ㅕ','ㅗ','ㅛ','ㅜ','ㅠ','ㅡ','ㅣ']
 
 export default function HangulTab() {
   const [subTab, setSubTab] = useState('letters')
   const [playing, setPlaying] = useState(null)
-  const [filter, setFilter] = useState('')
+  const [selectedConsonants, setSelectedConsonants] = useState([])
+  const [selectedVowels, setSelectedVowels] = useState([])
+
+  const toggleConsonant = (c) => {
+    setSelectedConsonants(prev =>
+      prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
+    )
+  }
+
+  const toggleVowel = (v) => {
+    setSelectedVowels(prev =>
+      prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]
+    )
+  }
+
+  const clearFilters = () => {
+    setSelectedConsonants([])
+    setSelectedVowels([])
+  }
+
+  const hasFilters = selectedConsonants.length > 0 || selectedVowels.length > 0
 
   const syllablesByVowel = useMemo(() => {
     const groups = {}
@@ -22,17 +43,17 @@ export default function HangulTab() {
   }, [])
 
   const filteredByVowel = useMemo(() => {
-    if (!filter.trim()) return syllablesByVowel
-    const q = filter.toLowerCase()
+    if (!hasFilters) return syllablesByVowel
     const filtered = {}
     VOWEL_ORDER.forEach(v => {
-      filtered[v] = syllablesByVowel[v].filter(s =>
-        s.romanization.toLowerCase().includes(q) ||
-        s.display.includes(q)
-      )
+      filtered[v] = syllablesByVowel[v].filter(s => {
+        const matchConsonant = selectedConsonants.length === 0 || selectedConsonants.includes(s.letters[0])
+        const matchVowel = selectedVowels.length === 0 || selectedVowels.includes(s.letters[1])
+        return matchConsonant && matchVowel
+      })
     })
     return filtered
-  }, [filter, syllablesByVowel])
+  }, [selectedConsonants, selectedVowels, syllablesByVowel, hasFilters])
 
   const playLetterAudio = useCallback(async (audioFile) => {
     setPlaying(audioFile)
@@ -82,14 +103,47 @@ export default function HangulTab() {
       </div>
 
       {subTab === 'syllables' && (
-        <div className="px-4 pb-2">
-          <input
-            type="text"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            placeholder="Filter by romanization (e.g. ga, myo, hae)..."
-            className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-100 text-sm placeholder:text-zinc-500 focus:outline-none focus:border-purple-500"
-          />
+        <div className="px-4 pb-2 space-y-2">
+          <div className="flex items-center gap-1 flex-wrap">
+            <span className="text-zinc-500 text-[10px] font-bold uppercase mr-1">Initial</span>
+            {CONSONANT_ORDER.map(c => (
+              <button
+                key={c}
+                onClick={() => toggleConsonant(c)}
+                className={`w-8 h-8 rounded-md text-sm font-bold transition-all ${
+                  selectedConsonants.includes(c)
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-1 flex-wrap">
+            <span className="text-zinc-500 text-[10px] font-bold uppercase mr-1">Vowel</span>
+            {VOWEL_ORDER.map(v => (
+              <button
+                key={v}
+                onClick={() => toggleVowel(v)}
+                className={`w-8 h-8 rounded-md text-sm font-bold transition-all ${
+                  selectedVowels.includes(v)
+                    ? 'bg-cyan-600 text-white'
+                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                }`}
+              >
+                {v}
+              </button>
+            ))}
+            {hasFilters && (
+              <button
+                onClick={clearFilters}
+                className="ml-2 px-2 py-1 rounded-md text-[10px] font-bold text-zinc-400 bg-zinc-800 hover:bg-zinc-700"
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -97,7 +151,7 @@ export default function HangulTab() {
         {subTab === 'letters' ? (
           <LettersView allConsonants={ALL_CONSONANTS} allVowels={ALL_VOWELS} playLetterAudio={playLetterAudio} playing={playing} />
         ) : (
-          <SyllablesView syllablesByVowel={filteredByVowel} speakSyllable={speakSyllable} filter={filter} />
+          <SyllablesView syllablesByVowel={filteredByVowel} speakSyllable={speakSyllable} />
         )}
       </div>
     </div>
@@ -139,7 +193,7 @@ function Section({ title, letters, playLetterAudio, playing }) {
   )
 }
 
-function SyllablesView({ syllablesByVowel, speakSyllable, filter }) {
+function SyllablesView({ syllablesByVowel, speakSyllable }) {
   const [playingKey, setPlayingKey] = useState(null)
 
   const handlePlay = useCallback(async (syl, key) => {
@@ -148,12 +202,12 @@ function SyllablesView({ syllablesByVowel, speakSyllable, filter }) {
     setPlayingKey(null)
   }, [speakSyllable])
 
-  const totalFiltered = Object.values(syllablesByVowel).reduce((sum, arr) => sum + arr.length, 0)
+  const totalSyllables = Object.values(syllablesByVowel).reduce((sum, arr) => sum + arr.length, 0)
 
   return (
     <div className="pt-2 space-y-6">
-      {filter && (
-        <p className="text-zinc-500 text-xs">{totalFiltered} syllables matching "{filter}"</p>
+      {totalSyllables === 0 && (
+        <p className="text-zinc-500 text-xs text-center py-4">No syllables match the selected filters</p>
       )}
       {VOWEL_ORDER.map(vowel => {
         const syls = syllablesByVowel[vowel]
