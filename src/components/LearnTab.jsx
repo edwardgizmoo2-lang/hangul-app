@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { consonants, doubleConsonants, vowels, difficultySettings } from '../data/hangul'
+import { consonants, doubleConsonants, vowels, compoundVowels, difficultySettings } from '../data/hangul'
 import LetterCard from './LetterCard'
 import GameControls from './GameControls'
 import ProgressBar from './ProgressBar'
@@ -11,6 +11,7 @@ const ALL_LETTERS = [
   ...consonants.map(c => ({ ...c, type: 'consonant', character: c.character || c.char })),
   ...doubleConsonants.map(c => ({ ...c, type: 'consonant', character: c.character || c.char })),
   ...vowels.map(v => ({ ...v, type: 'vowel', character: v.character || v.char })),
+  ...compoundVowels.map(v => ({ ...v, type: 'vowel', character: v.character || v.char })),
 ]
 
 function getSoundOptions(correctAnswer) {

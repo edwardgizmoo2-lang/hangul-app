@@ -402,21 +402,8 @@ export default function SpellGame({ onGameComplete, onBack }) {
               </div>
             </div>
 
-            {/* Picked slots */}
-            <div className="flex justify-center gap-3 mb-6">
-              {currentSyllable.letters.map((_, i) => (
-                <div
-                  key={i}
-                  className={`w-16 h-16 rounded-xl border-2 flex items-center justify-center text-3xl font-hangul transition-all duration-200 ${
-                    picked[i]
-                      ? 'border-amber-500 bg-amber-500/10 text-white scale-110 shadow-lg shadow-amber-500/20'
-                      : 'border-zinc-700 bg-zinc-900/50 text-zinc-700'
-                  }`}
-                >
-                  {picked[i] || '?'}
-                </div>
-              ))}
-            </div>
+            {/* Picked slots - Korean syllable block */}
+            <SyllableBlock letters={currentSyllable.letters} picked={picked} />
 
             {/* Tile grid */}
             <div className="space-y-2 mb-4">
@@ -567,6 +554,58 @@ function SpellFeedback({ result, syllable, onNext, onSpeak, speaking }) {
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+const VERTICAL_VOWELS = ['ㅏ','ㅑ','ㅓ','ㅕ','ㅣ']
+const HORIZONTAL_VOWELS = ['ㅗ','ㅛ','ㅜ','ㅠ','ㅡ']
+
+function SyllableBlock({ letters, picked }) {
+  const vowel = letters[1]
+  const isVertical = VERTICAL_VOWELS.includes(vowel)
+  const isHorizontal = HORIZONTAL_VOWELS.includes(vowel)
+  const hasFinal = letters.length === 3
+
+  const cellClass = (filled) =>
+    `rounded-xl border-2 flex items-center justify-center text-3xl font-hangul transition-all duration-200 ${
+      filled
+        ? 'border-amber-500 bg-amber-500/10 text-white shadow-lg shadow-amber-500/20'
+        : 'border-zinc-700 bg-zinc-900/50 text-zinc-700'
+    }`
+
+  if (hasFinal) {
+    if (isVertical) {
+      return (
+        <div className="grid grid-cols-2 gap-1.5 w-fit mx-auto mb-6">
+          <div className={`${cellClass(!!picked[0])} w-16 h-16`}>{picked[0] || '?'}</div>
+          <div className={`${cellClass(!!picked[1])} w-16 h-16`}>{picked[1] || '?'}</div>
+          <div className={`col-span-2 ${cellClass(!!picked[2])} w-32 h-16`}>{picked[2] || '?'}</div>
+        </div>
+      )
+    }
+    return (
+      <div className="grid grid-rows-3 gap-1.5 w-fit mx-auto mb-6">
+        <div className={`${cellClass(!!picked[0])} w-20 h-14`}>{picked[0] || '?'}</div>
+        <div className={`${cellClass(!!picked[1])} w-20 h-14`}>{picked[1] || '?'}</div>
+        <div className={`${cellClass(!!picked[2])} w-20 h-14`}>{picked[2] || '?'}</div>
+      </div>
+    )
+  }
+
+  if (isVertical) {
+    return (
+      <div className="flex justify-center gap-1.5 mb-6">
+        <div className={`${cellClass(!!picked[0])} w-16 h-16`}>{picked[0] || '?'}</div>
+        <div className={`${cellClass(!!picked[1])} w-16 h-16`}>{picked[1] || '?'}</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid grid-rows-2 gap-1.5 w-fit mx-auto mb-6">
+      <div className={`${cellClass(!!picked[0])} w-20 h-14`}>{picked[0] || '?'}</div>
+      <div className={`${cellClass(!!picked[1])} w-20 h-14`}>{picked[1] || '?'}</div>
     </div>
   )
 }
