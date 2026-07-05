@@ -170,7 +170,7 @@ export default function SpellGame({ onGameComplete, onBack }) {
     stopTimer()
     const isCorrect = picked.length === currentSyllable.letters.length &&
       picked.every((c, i) => c === currentSyllable.letters[i])
-    const points = isCorrect ? 2 : 0
+    const points = isCorrect ? 1 : 0
     const result = {
       syllable: currentSyllable.display,
       romanization: currentSyllable.romanization,
@@ -210,7 +210,7 @@ export default function SpellGame({ onGameComplete, onBack }) {
       mode: mode || 'freeplay',
       difficulty: difficulty || undefined,
       score,
-      totalPossible: deck.length * 2,
+      totalPossible: deck.length * 1,
       completedLetters: deck.length,
       totalLetters: deck.length,
       letterResults: results.map(r => ({
@@ -275,7 +275,7 @@ export default function SpellGame({ onGameComplete, onBack }) {
           </div>
 
           <p className="text-zinc-600 text-xs">
-            {DECK_SIZE} syllables • {DECK_SIZE * 2} points max
+            {DECK_SIZE} syllables • {DECK_SIZE * 1} points max
           </p>
 
           <button onClick={onBack} className="mt-4 text-zinc-500 hover:text-zinc-300 transition-colors text-xs">
