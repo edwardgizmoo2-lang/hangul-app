@@ -65,7 +65,7 @@ export default function LearnTab({ onGameComplete, onGameStateChange }) {
             className="card p-5 text-left hover:border-purple-500/50 hover:bg-zinc-800/50 transition-all group"
           >
             <div className="flex items-center gap-4">
-              <img src="/icons/recognized_icon.png" className="w-[3.75rem] h-[3.75rem]" alt="" />
+              <img src="icons/recognized_icon.png" className="w-[3.75rem] h-[3.75rem]" alt="" />
               <div>
                 <h3 className="text-white font-bold text-base mb-0.5 group-hover:text-purple-400 transition-colors">Letter Recognition</h3>
                 <p className="text-zinc-500 text-xs">See a Korean letter, pick its type and sound. {ALL_LETTERS.length} letters.</p>
@@ -78,7 +78,7 @@ export default function LearnTab({ onGameComplete, onGameStateChange }) {
             className="card p-5 text-left hover:border-cyan-500/50 hover:bg-zinc-800/50 transition-all group"
           >
             <div className="flex items-center gap-4">
-              <img src="/icons/listen_icon.png" className="w-[3.75rem] h-[3.75rem]" alt="" />
+              <img src="icons/listen_icon.png" className="w-[3.75rem] h-[3.75rem]" alt="" />
               <div>
                 <h3 className="text-white font-bold text-base mb-0.5 group-hover:text-cyan-400 transition-colors">Listen It!</h3>
                 <p className="text-zinc-500 text-xs">Hear a Korean syllable, pick the correct Hangul from 4 choices.</p>
@@ -91,7 +91,7 @@ export default function LearnTab({ onGameComplete, onGameStateChange }) {
             className="card p-5 text-left hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group"
           >
             <div className="flex items-center gap-4">
-              <img src="/icons/spell_icon.png" className="w-[3.75rem] h-[3.75rem]" alt="" />
+              <img src="icons/spell_icon.png" className="w-[3.75rem] h-[3.75rem]" alt="" />
               <div>
                 <h3 className="text-white font-bold text-base mb-0.5 group-hover:text-amber-400 transition-colors">Spell It!</h3>
                 <p className="text-zinc-500 text-xs">See the romanization, pick Korean letters to spell it.</p>
