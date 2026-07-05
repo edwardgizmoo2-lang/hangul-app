@@ -111,6 +111,7 @@ INITIALS.forEach(c => {
       romanization: roman,
       letters: [c, v],
       display: composeSyllable(c, v),
+      audioFile: `syllables/${composeSyllable(c, v)}.ogg`,
     })
     FINALS.forEach(f => {
       if (FINAL_INDEX[f] === undefined) return

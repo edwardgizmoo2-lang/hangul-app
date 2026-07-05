@@ -70,11 +70,19 @@ export default function HangulTab() {
     })
   }, [])
 
-  const speakSyllable = useCallback(async (text) => {
+  const speakSyllable = useCallback(async (syl) => {
+    if (syl.audioFile) {
+      return new Promise((resolve) => {
+        const audio = new Audio(`audio/${syl.audioFile}`)
+        audio.onended = () => resolve()
+        audio.onerror = () => { resolve() }
+        audio.play().catch(() => resolve())
+      })
+    }
     return new Promise((resolve) => {
       if (!('speechSynthesis' in window)) { resolve(); return }
       speechSynthesis.cancel()
-      const u = new SpeechSynthesisUtterance(text)
+      const u = new SpeechSynthesisUtterance(syl.display)
       u.lang = 'ko-KR'
       u.rate = 0.85
       u.onend = () => resolve()
@@ -236,7 +244,7 @@ function SyllablesView({ syllablesByVowel, speakSyllable, virtuosoRef, onScrollC
 
   const handlePlay = useCallback(async (syl, key) => {
     setPlayingKey(key)
-    await speakSyllable(syl.display)
+    await speakSyllable(syl)
     setPlayingKey(null)
   }, [speakSyllable])
 

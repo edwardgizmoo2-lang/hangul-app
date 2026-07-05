@@ -39,8 +39,6 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
 
   const speakKorean = useCallback(async (text) => {
     if (!('speechSynthesis' in window)) {
-      setShowTTSWarning(true)
-      setTimeout(() => setShowTTSWarning(false), 3000)
       return
     }
     return new Promise((resolve) => {
@@ -56,8 +54,19 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
     })
   }, [])
 
-  const speakSyllable = useCallback(async (text) => {
-    await speakKorean(text)
+  const speakSyllable = useCallback(async (syl) => {
+    if (syl?.audioFile) {
+      return new Promise((resolve) => {
+        const audio = new Audio(`audio/${syl.audioFile}`)
+        audio.onended = () => resolve()
+        audio.onerror = () => resolve()
+        audio.play().catch(() => resolve())
+      })
+    }
+    if (syl?.display) {
+      return speakKorean(syl.display)
+    }
+    return speakKorean(syl)
   }, [speakKorean])
 
   const playSfx = useCallback((type) => {
@@ -111,7 +120,7 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
     setFeedbackResult(result)
     setResults(prev => [...prev, result])
     setShowFeedback(true)
-    speakSyllable(currentSyllable.display)
+    speakSyllable(currentSyllable)
   }, [currentSyllable, picked, stopTimer, speakSyllable])
 
   const startGame = useCallback((selectedMode, selectedDifficulty = null) => {
@@ -197,7 +206,7 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
     setScore(prev => prev + points)
     setShowFeedback(true)
     playSfx(isCorrect ? 'correct' : 'wrong')
-    speakSyllable(currentSyllable.display)
+    speakSyllable(currentSyllable)
   }, [currentSyllable, picked, stopTimer, speakSyllable, playSfx])
 
   const handleNext = useCallback(() => {
@@ -408,7 +417,7 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
             result={feedbackResult}
             syllable={currentSyllable}
             onNext={handleNext}
-            onSpeak={() => speakSyllable(currentSyllable?.display)}
+            onSpeak={() => speakSyllable(currentSyllable)}
             speaking={false}
           />
         ) : currentSyllable ? (
