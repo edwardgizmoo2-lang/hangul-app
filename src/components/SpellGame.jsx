@@ -18,7 +18,7 @@ function shuffle(arr) {
   return a
 }
 
-export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack }) {
+export default function SpellGame({ onGameComplete, onBack }) {
   const [screen, setScreen] = useState('start')
   const [mode, setMode] = useState(null)
   const [difficulty, setDifficulty] = useState(null)
@@ -31,28 +31,10 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
   const [feedbackResult, setFeedbackResult] = useState(null)
   const [timeRemaining, setTimeRemaining] = useState(0)
   const [totalTime, setTotalTime] = useState(0)
-  const [showTTSWarning, setShowTTSWarning] = useState(false)
   const [confirmQuit, setConfirmQuit] = useState(false)
 
   const timerRef = useRef(null)
   const currentSyllable = deck[currentIndex]
-
-  const speakKorean = useCallback(async (text) => {
-    if (!('speechSynthesis' in window)) {
-      return
-    }
-    return new Promise((resolve) => {
-      speechSynthesis.cancel()
-      const u = new SpeechSynthesisUtterance(text)
-      u.lang = 'ko-KR'
-      u.rate = 0.85
-      u.pitch = 1
-      u.volume = 1
-      u.onend = () => resolve()
-      u.onerror = () => resolve()
-      speechSynthesis.speak(u)
-    })
-  }, [])
 
   const speakSyllable = useCallback(async (syl) => {
     if (syl?.audioFile) {
@@ -63,11 +45,7 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
         audio.play().catch(() => resolve())
       })
     }
-    if (syl?.display) {
-      return speakKorean(syl.display)
-    }
-    return speakKorean(syl)
-  }, [speakKorean])
+  }, [])
 
   const playSfx = useCallback((type) => {
     const audio = new Audio(`audio/sfx/${type}.mp3`)
@@ -265,12 +243,6 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
             See the romanization, pick the Korean letters to spell it.
           </p>
 
-          {!koreanVoiceAvailable && (
-            <div className="mb-4 p-3 bg-amber-900/30 border border-amber-600/30 rounded-lg text-amber-300 text-xs max-w-sm mx-auto">
-              Korean TTS voice not detected. Install Korean language pack in Windows Settings.
-            </div>
-          )}
-
           <div className="card text-left p-4 max-w-md mx-auto mb-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
             <div className="flex items-start gap-3">
               <div className="text-2xl">🔤</div>
@@ -445,12 +417,6 @@ export default function SpellGame({ onGameComplete, koreanVoiceAvailable, onBack
                 </div>
               ))}
             </div>
-
-            {showTTSWarning && (
-              <div className="mb-3 p-2 bg-amber-900/30 border border-amber-600/30 rounded-lg text-amber-300 text-xs text-center">
-                Korean voice not available
-              </div>
-            )}
 
             {/* Tile grid */}
             <div className="space-y-2 mb-4">

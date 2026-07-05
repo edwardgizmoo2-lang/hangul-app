@@ -11,7 +11,9 @@
     "noEmit": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "incremental": true,
+    "tsBuildInfoFile": "dist/.tsbuildinfo.electron"
   },
   "include": ["src/main/**/*", "src/preload/**/*"],
   "exclude": ["node_modules", "src/**/*.{tsx,jsx}"]

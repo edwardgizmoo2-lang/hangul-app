@@ -9,7 +9,6 @@ export default function LetterCard({
   onSubmit, 
   canSubmit, 
   speaking,
-  showTTSWarning
 }) {
   return (
     <div className="w-full max-w-md animate-slide-up">
@@ -62,11 +61,6 @@ export default function LetterCard({
           </fieldset>
         </div>
 
-        {showTTSWarning && (
-          <div className="mt-3 p-2 bg-amber-900/30 border border-amber-600/30 rounded-lg text-amber-300 text-xs text-center">
-            Korean voice not available - install Korean language pack
-          </div>
-        )}
       </div>
 
       <button

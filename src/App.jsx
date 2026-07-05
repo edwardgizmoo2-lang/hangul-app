@@ -12,7 +12,6 @@ function App() {
   const [activeTab, setActiveTab] = useState('learn')
   const [stats, setStats] = useState(null)
   const [letterMastery, setLetterMastery] = useState({})
-  const [koreanVoiceAvailable, setKoreanVoiceAvailable] = useState(false)
   const [gameInProgress, setGameInProgress] = useState(false)
   const [pendingTab, setPendingTab] = useState(null)
   const scrollRef = useRef(null)
@@ -25,7 +24,6 @@ function App() {
 
   useEffect(() => {
     loadStats()
-    checkTTS()
   }, [loadStats])
 
   useEffect(() => {
@@ -37,22 +35,6 @@ function App() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
-
-  const checkTTS = () => {
-    if ('speechSynthesis' in window) {
-      const check = () => {
-        const voices = speechSynthesis.getVoices()
-        const krVoice = voices.find(v => v.lang === 'ko-KR' || v.lang.startsWith('ko'))
-        setKoreanVoiceAvailable(!!krVoice)
-      }
-      if (speechSynthesis.getVoices().length > 0) {
-        check()
-      } else {
-        speechSynthesis.onvoiceschanged = check
-        setTimeout(() => setKoreanVoiceAvailable(true), 3000)
-      }
-    }
-  }
 
   const handleGameComplete = async (gameResult) => {
     await saveGameSession(gameResult)
@@ -99,7 +81,7 @@ function App() {
       <main ref={scrollRef} className="flex-1 overflow-y-auto">
         <Suspense fallback={<div className="flex items-center justify-center h-full"><Loading size="lg" /></div>}>
           {activeTab === 'learn' && (
-            <LearnTab onGameComplete={handleGameComplete} koreanVoiceAvailable={koreanVoiceAvailable} onGameStateChange={setGameInProgress} />
+            <LearnTab onGameComplete={handleGameComplete} onGameStateChange={setGameInProgress} />
           )}
           {activeTab === 'hangul' && (
             <HangulTab />

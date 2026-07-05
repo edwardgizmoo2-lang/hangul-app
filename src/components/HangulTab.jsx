@@ -1,40 +1,27 @@
 import { useState, useCallback, useMemo, useRef } from 'react'
 import { Virtuoso } from 'react-virtuoso'
 import { consonants, doubleConsonants, vowels, compoundVowels, syllables } from '../data/hangul'
+import { isElectron } from '../utils/platform'
 
 const ALL_CONSONANTS = [...consonants, ...doubleConsonants]
 const ALL_VOWELS = [...vowels, ...compoundVowels]
 
-const CONSONANT_ORDER = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ']
 const VOWEL_ORDER = ['ㅏ','ㅑ','ㅓ','ㅕ','ㅗ','ㅛ','ㅜ','ㅠ','ㅡ','ㅣ']
 
 export default function HangulTab() {
   const [subTab, setSubTab] = useState('letters')
   const [playing, setPlaying] = useState(null)
-  const [selectedConsonants, setSelectedConsonants] = useState([])
-  const [selectedVowels, setSelectedVowels] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
   const [showBatchim, setShowBatchim] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
+  const searchRef = useRef(null)
+  const letterScrollRef = useRef(null)
   const virtuosoRef = useRef(null)
 
-  const toggleConsonant = (c) => {
-    setSelectedConsonants(prev =>
-      prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
-    )
-  }
-
-  const toggleVowel = (v) => {
-    setSelectedVowels(prev =>
-      prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]
-    )
-  }
-
-  const clearFilters = () => {
-    setSelectedConsonants([])
-    setSelectedVowels([])
-  }
-
-  const hasFilters = selectedConsonants.length > 0 || selectedVowels.length > 0
+  const switchSubTab = useCallback((tab) => {
+    setSubTab(tab)
+    setShowScrollTop(false)
+  }, [])
 
   const syllablesByVowel = useMemo(() => {
     const groups = {}
@@ -48,17 +35,22 @@ export default function HangulTab() {
   }, [showBatchim])
 
   const filteredByVowel = useMemo(() => {
-    if (!hasFilters) return syllablesByVowel
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return syllablesByVowel
     const filtered = {}
     VOWEL_ORDER.forEach(v => {
       filtered[v] = syllablesByVowel[v].filter(s => {
-        const matchConsonant = selectedConsonants.length === 0 || selectedConsonants.includes(s.letters[0])
-        const matchVowel = selectedVowels.length === 0 || selectedVowels.includes(s.letters[1])
-        return matchConsonant && matchVowel
+        return (
+          s.display === q ||
+          s.display.toLowerCase() === q ||
+          s.romanization.toLowerCase().includes(q) ||
+          s.letters.some(l => l === q || l.toLowerCase() === q) ||
+          (s.letters.length === 3 && s.letters[2] && s.letters[2].toLowerCase().includes(q))
+        )
       })
     })
     return filtered
-  }, [selectedConsonants, selectedVowels, syllablesByVowel, hasFilters])
+  }, [searchQuery, syllablesByVowel])
 
   const playLetterAudio = useCallback(async (audioFile) => {
     setPlaying(audioFile)
@@ -71,23 +63,12 @@ export default function HangulTab() {
   }, [])
 
   const speakSyllable = useCallback(async (syl) => {
-    if (syl.audioFile) {
-      return new Promise((resolve) => {
-        const audio = new Audio(`audio/${syl.audioFile}`)
-        audio.onended = () => resolve()
-        audio.onerror = () => { resolve() }
-        audio.play().catch(() => resolve())
-      })
-    }
+    if (!syl?.audioFile) return
     return new Promise((resolve) => {
-      if (!('speechSynthesis' in window)) { resolve(); return }
-      speechSynthesis.cancel()
-      const u = new SpeechSynthesisUtterance(syl.display)
-      u.lang = 'ko-KR'
-      u.rate = 0.85
-      u.onend = () => resolve()
-      u.onerror = () => resolve()
-      speechSynthesis.speak(u)
+      const audio = new Audio(`audio/${syl.audioFile}`)
+      audio.onended = () => resolve()
+      audio.onerror = () => resolve()
+      audio.play().catch(() => resolve())
     })
   }, [])
 
@@ -95,7 +76,7 @@ export default function HangulTab() {
     <div className="h-full flex flex-col overflow-hidden">
       <div className="flex items-center gap-2 px-4 pt-3 pb-2">
         <button
-          onClick={() => setSubTab('letters')}
+          onClick={() => switchSubTab('letters')}
           className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
             subTab === 'letters'
               ? 'bg-purple-600 text-white'
@@ -105,7 +86,7 @@ export default function HangulTab() {
           Letters
         </button>
         <button
-          onClick={() => setSubTab('syllables')}
+          onClick={() => switchSubTab('syllables')}
           className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
             subTab === 'syllables'
               ? 'bg-purple-600 text-white'
@@ -118,43 +99,26 @@ export default function HangulTab() {
 
       {subTab === 'syllables' && (
         <div className="px-4 pb-2 space-y-2">
-          <div className="flex items-center gap-1 flex-wrap">
-            <span className="text-zinc-500 text-[10px] font-bold uppercase mr-1">Initial</span>
-            {CONSONANT_ORDER.map(c => (
+          <div className="relative">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              ref={searchRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search syllable or romanization..."
+              className="w-full pl-9 pr-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-200 text-sm placeholder-zinc-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+            />
+            {searchQuery && (
               <button
-                key={c}
-                onClick={() => toggleConsonant(c)}
-                className={`w-8 h-8 rounded-md text-sm font-bold transition-all duration-200 ${
-                  selectedConsonants.includes(c)
-                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'
-                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:shadow-md hover:shadow-purple-500/10'
-                }`}
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
               >
-                {c}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center gap-1 flex-wrap">
-            <span className="text-zinc-500 text-[10px] font-bold uppercase mr-1">Vowel</span>
-            {VOWEL_ORDER.map(v => (
-              <button
-                key={v}
-                onClick={() => toggleVowel(v)}
-                className={`w-8 h-8 rounded-md text-sm font-bold transition-all duration-200 ${
-                  selectedVowels.includes(v)
-                    ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30'
-                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:shadow-md hover:shadow-cyan-500/10'
-                }`}
-              >
-                {v}
-              </button>
-            ))}
-            {hasFilters && (
-              <button
-                onClick={clearFilters}
-                className="ml-2 px-2 py-1 rounded-md text-[10px] font-bold text-zinc-400 bg-zinc-800 hover:bg-zinc-700"
-              >
-                Clear
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             )}
           </div>
@@ -175,7 +139,11 @@ export default function HangulTab() {
       )}
 
       {subTab === 'letters' ? (
-        <div className="flex-1 overflow-y-auto px-4 pb-4">
+        <div
+          ref={letterScrollRef}
+          className="flex-1 overflow-y-auto px-4 pb-4"
+          onScroll={(e) => setShowScrollTop(e.target.scrollTop > 300)}
+        >
           <LettersView allConsonants={ALL_CONSONANTS} allVowels={ALL_VOWELS} playLetterAudio={playLetterAudio} playing={playing} />
         </div>
       ) : (
@@ -191,8 +159,16 @@ export default function HangulTab() {
 
       {showScrollTop && (
         <button
-          onClick={() => virtuosoRef.current?.scrollToIndex({ index: 0, align: 'start' })}
-          className="fixed z-50 w-11 h-11 rounded-full bg-purple-600 text-white shadow-lg shadow-purple-500/30 flex items-center justify-center transition-all duration-200 hover:bg-purple-500 hover:shadow-xl hover:shadow-purple-500/40 active:scale-95 animate-fade-in bottom-6 right-6"
+          onClick={() => {
+            if (subTab === 'letters') {
+              letterScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+            } else {
+              virtuosoRef.current?.scrollToIndex({ index: 0, align: 'start', behavior: 'smooth' })
+            }
+          }}
+          className={`fixed z-50 w-11 h-11 rounded-full bg-purple-600 text-white shadow-lg shadow-purple-500/30 flex items-center justify-center transition-all duration-200 hover:bg-purple-500 hover:shadow-xl hover:shadow-purple-500/40 active:scale-95 animate-fade-in ${
+            isElectron() ? 'bottom-6 right-6' : 'bottom-6 left-1/2 -translate-x-1/2'
+          }`}
           aria-label="Scroll to top"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

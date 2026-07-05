@@ -117,10 +117,12 @@ INITIALS.forEach(c => {
       if (FINAL_INDEX[f] === undefined) return
       const finalRoman = FINAL_ROMAN[f]
       const romanWithFinal = roman + finalRoman
+      const syl3 = composeSyllable(c, v, f)
       syllables.push({
         romanization: romanWithFinal,
         letters: [c, v, f],
-        display: composeSyllable(c, v, f),
+        display: syl3,
+        audioFile: `syllables/${syl3}.ogg`,
       })
     })
   })

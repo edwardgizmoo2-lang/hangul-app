@@ -25,7 +25,7 @@ function getSoundOptions(correctAnswer) {
   return options.sort(() => Math.random() - 0.5)
 }
 
-export default function LearnTab({ onGameComplete, koreanVoiceAvailable, onGameStateChange }) {
+export default function LearnTab({ onGameComplete, onGameStateChange }) {
   const [gameType, setGameType] = useState(null) // null | 'letter' | 'spell'
 
   const setGameTypeWrapped = useCallback((type) => {
@@ -34,7 +34,7 @@ export default function LearnTab({ onGameComplete, koreanVoiceAvailable, onGameS
   }, [onGameStateChange])
 
   if (gameType === 'spell') {
-    return <SpellGame onGameComplete={onGameComplete} koreanVoiceAvailable={koreanVoiceAvailable} onBack={() => setGameTypeWrapped(null)} />
+    return <SpellGame onGameComplete={onGameComplete} onBack={() => setGameTypeWrapped(null)} />
   }
 
   if (gameType === 'letter') {
