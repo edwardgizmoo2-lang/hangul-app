@@ -6,6 +6,7 @@ import ProgressBar from './ProgressBar'
 import FeedbackOverlay from './FeedbackOverlay'
 import CircularTimer from './CircularTimer'
 import SpellGame from './SpellGame'
+import ListenGame from './ListenGame'
 
 const ALL_LETTERS = [
   ...consonants.map(c => ({ ...c, type: 'consonant', character: c.character || c.char })),
@@ -27,12 +28,16 @@ function getSoundOptions(correctAnswer) {
 }
 
 export default function LearnTab({ onGameComplete, onGameStateChange }) {
-  const [gameType, setGameType] = useState(null) // null | 'letter' | 'spell'
+  const [gameType, setGameType] = useState(null) // null | 'letter' | 'spell' | 'listen'
 
   const setGameTypeWrapped = useCallback((type) => {
     setGameType(type)
     onGameStateChange(type !== null)
   }, [onGameStateChange])
+
+  if (gameType === 'listen') {
+    return <ListenGame onGameComplete={onGameComplete} onBack={() => setGameTypeWrapped(null)} />
+  }
 
   if (gameType === 'spell') {
     return <SpellGame onGameComplete={onGameComplete} onBack={() => setGameTypeWrapped(null)} />
@@ -69,14 +74,27 @@ export default function LearnTab({ onGameComplete, onGameStateChange }) {
           </button>
 
           <button
+            onClick={() => setGameTypeWrapped('listen')}
+            className="card p-5 text-left hover:border-cyan-500/50 hover:bg-zinc-800/50 transition-all group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="text-3xl">🔊</div>
+              <div>
+                <h3 className="text-white font-bold text-base mb-0.5 group-hover:text-cyan-400 transition-colors">Listen It!</h3>
+                <p className="text-zinc-500 text-xs">Hear a Korean syllable, pick the correct Hangul from 4 choices.</p>
+              </div>
+            </div>
+          </button>
+
+          <button
             onClick={() => setGameTypeWrapped('spell')}
             className="card p-5 text-left hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group"
           >
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <div className="text-3xl">🔤</div>
               <div>
                 <h3 className="text-white font-bold text-base mb-0.5 group-hover:text-amber-400 transition-colors">Spell It!</h3>
-                <p className="text-zinc-500 text-xs">See the romanization, pick Korean letters to spell it. Hear each letter as you pick.</p>
+                <p className="text-zinc-500 text-xs">See the romanization, pick Korean letters to spell it.</p>
               </div>
             </div>
           </button>
