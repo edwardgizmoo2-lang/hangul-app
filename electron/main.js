@@ -86,6 +86,7 @@ ipcMain.handle('window-maximize', () => {
   } else {
     mainWindow?.maximize()
   }
+  return mainWindow?.isMaximized() ?? false
 })
 
 ipcMain.handle('window-close', () => {

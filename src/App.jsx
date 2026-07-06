@@ -22,9 +22,7 @@ function App() {
   useEffect(() => {
     if (!isElectron()) return
     window.electronAPI.isMaximized().then(setIsMaximized)
-    const handler = (e) => setIsMaximized(e.detail)
-    window.addEventListener('window-maximized-changed', handler)
-    return () => window.removeEventListener('window-maximized-changed', handler)
+    window.electronAPI.onMaximizedChange(setIsMaximized)
   }, [])
 
   const loadStats = useCallback(async () => {
@@ -100,7 +98,7 @@ function App() {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onMinimize={() => window.electron?.window?.minimize?.()}
-        onMaximize={() => window.electron?.window?.maximize?.()}
+        onMaximize={async () => { const m = await window.electron?.window?.maximize?.(); if (m !== undefined) setIsMaximized(m) }}
         onClose={() => window.electron?.window?.close?.()}
         isMaximized={isMaximized}
       />
