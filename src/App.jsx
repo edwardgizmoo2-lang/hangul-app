@@ -20,7 +20,7 @@ function App() {
   const scrollRef = useRef(null)
 
   useEffect(() => {
-    if (!isElectron()) return
+    if (!window.electronAPI?.isMaximized) return
     window.electronAPI.isMaximized().then(setIsMaximized)
     window.electronAPI.onMaximizedChange(setIsMaximized)
   }, [])
