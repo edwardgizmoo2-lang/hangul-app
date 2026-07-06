@@ -60,10 +60,10 @@ export default function Header({ activeTab, onTabChange, onMinimize, onMaximize,
             role="tab"
             aria-selected={activeTab === 'learn'}
             onClick={() => onTabChange('learn')}
-            className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${!electron ? '' : '-webkit-app-region:no-drag'} ${
+            className={`flex-1 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${!electron ? '' : '-webkit-app-region:no-drag'} ${
               activeTab === 'learn'
-                ? 'bg-purple-600 text-white shadow-sm shadow-purple-500/20'
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                ? 'border border-purple-500/30 bg-purple-600 text-white shadow-sm shadow-purple-500/20'
+                : 'border border-purple-500/20 text-zinc-400 hover:text-white hover:bg-zinc-800'
             }`}
           >
             Learn
@@ -72,10 +72,10 @@ export default function Header({ activeTab, onTabChange, onMinimize, onMaximize,
             role="tab"
             aria-selected={activeTab === 'hangul'}
             onClick={() => onTabChange('hangul')}
-            className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${!electron ? '' : '-webkit-app-region:no-drag'} ${
+            className={`flex-1 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${!electron ? '' : '-webkit-app-region:no-drag'} ${
               activeTab === 'hangul'
-                ? 'bg-purple-600 text-white shadow-sm shadow-purple-500/20'
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                ? 'border border-purple-500/30 bg-purple-600 text-white shadow-sm shadow-purple-500/20'
+                : 'border border-purple-500/20 text-zinc-400 hover:text-white hover:bg-zinc-800'
             }`}
           >
             Hangul
@@ -84,10 +84,10 @@ export default function Header({ activeTab, onTabChange, onMinimize, onMaximize,
             role="tab"
             aria-selected={activeTab === 'progress'}
             onClick={() => onTabChange('progress')}
-            className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${!electron ? '' : '-webkit-app-region:no-drag'} ${
+            className={`flex-1 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${!electron ? '' : '-webkit-app-region:no-drag'} ${
               activeTab === 'progress'
-                ? 'bg-purple-600 text-white shadow-sm shadow-purple-500/20'
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                ? 'border border-purple-500/30 bg-purple-600 text-white shadow-sm shadow-purple-500/20'
+                : 'border border-purple-500/20 text-zinc-400 hover:text-white hover:bg-zinc-800'
             }`}
           >
             Progress

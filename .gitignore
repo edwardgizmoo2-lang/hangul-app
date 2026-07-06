@@ -9,3 +9,5 @@ android/capacitor-cordova-android-plugins/build/
 .DS_Store
 Thumbs.db
 assets/icon-temp.png
+android/hangul-learn-release.keystore
+android/keystore.properties

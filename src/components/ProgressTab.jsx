@@ -43,8 +43,13 @@ function getCardBorderColor(level) {
 }
 
 export default function ProgressTab({ stats, letterMastery, onRefresh }) {
-  const [viewMode, setViewMode] = useState('grid')
+  const [viewMode, setViewMode] = useState(() => localStorage.getItem('progressViewMode') || 'grid')
   const [confirmReset, setConfirmReset] = useState(false)
+
+  const handleViewMode = (mode) => {
+    setViewMode(mode)
+    localStorage.setItem('progressViewMode', mode)
+  }
 
   const handleReset = async () => {
     await resetProgress()
@@ -119,20 +124,12 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
             </h1>
             <p className="text-zinc-500 text-xs">Track your Hangul mastery journey</p>
           </div>
-          <div className="flex items-center gap-2 animate-fade-in">
-            <button
-              onClick={onRefresh}
-              className="px-4 py-2 bg-zinc-800 text-zinc-400 rounded-lg hover:bg-zinc-700 hover:text-zinc-200 transition-all text-sm font-medium hover:scale-105 active:scale-95"
-            >
-              Refresh
-            </button>
-            <button
-              onClick={() => setConfirmReset(true)}
-              className="px-4 py-2 bg-zinc-800 text-red-400 rounded-lg hover:bg-red-900/50 hover:text-red-300 transition-all text-sm font-medium hover:scale-105 active:scale-95"
-            >
-              Reset All
-            </button>
-          </div>
+          <button
+            onClick={() => setConfirmReset(true)}
+            className="px-4 py-2 bg-zinc-800 text-red-400 rounded-lg hover:bg-red-900/50 hover:text-red-300 transition-all text-sm font-medium hover:scale-105 active:scale-95 animate-fade-in"
+          >
+            Reset Progress
+          </button>
         </div>
 
         {/* Stats Cards */}
@@ -196,7 +193,7 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
         {/* View Toggle */}
         <div className="flex items-center gap-2 animate-fade-in">
           <button
-            onClick={() => setViewMode('grid')}
+            onClick={() => handleViewMode('grid')}
             className={`px-4 py-2 rounded-lg text-sm font-bold transition-all hover:scale-105 active:scale-95 ${
               viewMode === 'grid'
                 ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'
@@ -206,7 +203,7 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
             Grid
           </button>
           <button
-            onClick={() => setViewMode('list')}
+            onClick={() => handleViewMode('list')}
             className={`px-4 py-2 rounded-lg text-sm font-bold transition-all hover:scale-105 active:scale-95 ${
               viewMode === 'list'
                 ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'

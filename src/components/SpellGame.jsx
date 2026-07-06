@@ -535,7 +535,7 @@ function SpellFeedback({ result, syllable, onNext, onSpeak, speaking }) {
         <div className={`p-2.5 rounded-lg text-center font-bold text-sm mb-4 ${
           result.points === 1 ? 'bg-green-900/30 border-green-500 text-green-400' : 'bg-red-900/30 border-red-500 text-red-400'
         } border-2`}>
-          +{result.points} / 1 point
+          {result.points === 1 ? '+1 Point!' : '0 Point'}
         </div>
 
         <div className="flex gap-2">
