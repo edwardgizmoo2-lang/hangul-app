@@ -11,8 +11,8 @@ const sizes = {
 
 async function generate() {
   for (const [density, w] of Object.entries(sizes)) {
-    const h = Math.round(w * 0.375)
-    const fontSize = Math.round(w * 0.12)
+    const h = Math.round(w * 0.28)
+    const fontSize = Math.round(w * 0.09)
     const svg = `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
   <text x="${w/2}" y="${h/2}" text-anchor="middle" dominant-baseline="central"
         fill="white" font-size="${fontSize}" font-weight="bold"
@@ -26,8 +26,8 @@ async function generate() {
   }
 
   // Also a base copy in drawable/ for fallback
-  const baseW = 720, baseH = Math.round(720 * 0.375)
-  const baseFont = Math.round(720 * 0.12)
+  const baseW = 720, baseH = Math.round(720 * 0.28)
+  const baseFont = Math.round(720 * 0.09)
   const svg = `<svg width="${baseW}" height="${baseH}" xmlns="http://www.w3.org/2000/svg">
   <text x="${baseW/2}" y="${baseH/2}" text-anchor="middle" dominant-baseline="central"
         fill="white" font-size="${baseFont}" font-weight="bold"
