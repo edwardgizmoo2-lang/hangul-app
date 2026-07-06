@@ -40,6 +40,14 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null
   })
+
+  mainWindow.on('maximize', () => {
+    mainWindow?.webContents.send('window-maximized-changed', true)
+  })
+
+  mainWindow.on('unmaximize', () => {
+    mainWindow?.webContents.send('window-maximized-changed', false)
+  })
 }
 
 app.whenReady().then(createWindow)

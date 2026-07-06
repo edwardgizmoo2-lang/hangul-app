@@ -3,7 +3,7 @@ import Header from './components/Header'
 import ScrollToTopButton from './components/ScrollToTopButton'
 import Loading from './components/Loading'
 import { getStats, getLetterMastery, saveGameSession } from './utils/storage'
-import { isNative } from './utils/platform'
+import { isNative, isElectron } from './utils/platform'
 
 const LearnTab = lazy(() => import('./components/LearnTab'))
 const HangulTab = lazy(() => import('./components/HangulTab'))
@@ -16,7 +16,14 @@ function App() {
   const [gameInProgress, setGameInProgress] = useState(false)
   const [pendingTab, setPendingTab] = useState(null)
   const [backSignal, setBackSignal] = useState(0)
+  const [isMaximized, setIsMaximized] = useState(false)
   const scrollRef = useRef(null)
+
+  useEffect(() => {
+    if (!window.electronAPI?.onMaximizedChange) return
+    window.electronAPI.isMaximized().then(setIsMaximized)
+    window.electronAPI.onMaximizedChange(setIsMaximized)
+  }, [])
 
   const loadStats = useCallback(async () => {
     const [s, lm] = await Promise.all([getStats(), getLetterMastery()])
@@ -93,7 +100,7 @@ function App() {
         onMinimize={() => window.electron?.window?.minimize?.()}
         onMaximize={() => window.electron?.window?.maximize?.()}
         onClose={() => window.electron?.window?.close?.()}
-        isMaximized={false}
+        isMaximized={isMaximized}
       />
       <main ref={scrollRef} className="flex-1 overflow-y-auto">
         <Suspense fallback={<div className="flex items-center justify-center h-full"><Loading size="lg" /></div>}>
@@ -109,6 +116,14 @@ function App() {
         </Suspense>
       </main>
       {activeTab !== 'hangul' && <ScrollToTopButton scrollRef={scrollRef} />}
+
+      {activeTab === 'learn' && (
+        <p className={`fixed bottom-2 text-zinc-500 text-xs font-medium pointer-events-none select-none ${
+          isElectron() ? 'right-4' : 'left-1/2 -translate-x-1/2'
+        }`}>
+          Made by Edward
+        </p>
+      )}
 
       {pendingTab && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
