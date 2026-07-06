@@ -1,5 +1,9 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
+ipcRenderer.on('window-maximized-changed', (_event, val) => {
+  window.dispatchEvent(new CustomEvent('window-maximized-changed', { detail: val }))
+})
+
 const api = {
   getStats: () => ipcRenderer.invoke('get-stats'),
   saveGameSession: (session) => ipcRenderer.invoke('save-game-session', session),
@@ -8,9 +12,6 @@ const api = {
   maximize: () => ipcRenderer.invoke('window-maximize'),
   close: () => ipcRenderer.invoke('window-close'),
   isMaximized: () => ipcRenderer.invoke('window-is-maximized'),
-  onMaximizedChange: (callback) => {
-    ipcRenderer.on('window-maximized-changed', (_event, val) => callback(val))
-  },
 }
 
 contextBridge.exposeInMainWorld('electronAPI', api)

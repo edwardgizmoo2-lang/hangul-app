@@ -20,9 +20,11 @@ function App() {
   const scrollRef = useRef(null)
 
   useEffect(() => {
-    if (!window.electronAPI?.onMaximizedChange) return
+    if (!isElectron()) return
     window.electronAPI.isMaximized().then(setIsMaximized)
-    window.electronAPI.onMaximizedChange(setIsMaximized)
+    const handler = (e) => setIsMaximized(e.detail)
+    window.addEventListener('window-maximized-changed', handler)
+    return () => window.removeEventListener('window-maximized-changed', handler)
   }, [])
 
   const loadStats = useCallback(async () => {
