@@ -1,6 +1,6 @@
 {
   "name": "hangul-app",
-  "version": "1.0.0",
+  "version": "1.0.57",
   "description": "Offline Hangul learning desktop application",
   "main": "dist/main/main.js",
   "scripts": {
