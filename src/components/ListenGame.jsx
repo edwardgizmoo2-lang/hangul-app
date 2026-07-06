@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { syllables, difficultySettings } from '../data/hangul'
+import { syllables, consonants, doubleConsonants, vowels, compoundVowels, difficultySettings } from '../data/hangul'
 import GameControls from './GameControls'
 import ProgressBar from './ProgressBar'
 import CircularTimer from './CircularTimer'
 
 const DECK_SIZE = 20
+const LETTER_POOL = [...consonants, ...doubleConsonants, ...vowels, ...compoundVowels]
+  .map(l => ({ ...l, display: l.char }))
 
 function shuffle(arr) {
   const a = [...arr]
@@ -22,8 +24,12 @@ function pickChoices(correct, pool) {
   return shuffle(choices)
 }
 
+const getPool = (sm) => sm === 'letter' ? LETTER_POOL : syllables
+const getLabel = (sm) => sm === 'letter' ? 'letter' : 'syllable'
+
 export default function ListenGame({ onGameComplete, onBack }) {
   const [screen, setScreen] = useState('start')
+  const [subMode, setSubMode] = useState(null) // 'letter' | 'syllable'
   const [mode, setMode] = useState(null)
   const [difficulty, setDifficulty] = useState(null)
   const [deck, setDeck] = useState([])
@@ -109,7 +115,7 @@ export default function ListenGame({ onGameComplete, onBack }) {
   }, [currentSyllable, stopTimer, speakSyllable])
 
   const startGame = useCallback((selectedMode, selectedDifficulty = null) => {
-    const shuffled = shuffle(syllables).slice(0, DECK_SIZE)
+    const shuffled = shuffle(getPool(subMode)).slice(0, DECK_SIZE)
     setDeck(shuffled)
     setCurrentIndex(0)
     setScore(0)
@@ -123,11 +129,12 @@ export default function ListenGame({ onGameComplete, onBack }) {
     if (selectedMode === 'timer' && selectedDifficulty) {
       startTimer(difficultySettings[selectedDifficulty].timePerLetter)
     }
-  }, [startTimer])
+  }, [startTimer, subMode])
 
   const confirmQuitGame = useCallback(() => {
     stopTimer()
     setScreen('start')
+    setSubMode(null)
     setMode(null)
     setDifficulty(null)
     setDeck([])
@@ -214,14 +221,14 @@ export default function ListenGame({ onGameComplete, onBack }) {
 
   useEffect(() => {
     if (currentSyllable && screen === 'playing') {
-      setChoices(pickChoices(currentSyllable, syllables))
+      setChoices(pickChoices(currentSyllable, getPool(subMode)))
       if (!showFeedback) {
         speakSyllable(currentSyllable)
       }
     }
-  }, [currentSyllable, screen, showFeedback, speakSyllable])
+  }, [currentSyllable, screen, showFeedback, speakSyllable, subMode])
 
-  // Start Screen
+  // Start Screen — choose topic
   if (screen === 'start') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-4 overflow-y-auto">
@@ -231,7 +238,50 @@ export default function ListenGame({ onGameComplete, onBack }) {
             Listen It!
           </h1>
           <p className="text-zinc-400 mb-6 text-sm leading-relaxed max-w-md mx-auto">
-            Hear a Korean syllable, pick the correct one.
+            Choose what you want to practice listening to.
+          </p>
+
+          <div className="grid grid-cols-2 gap-3 max-w-md mx-auto mb-6">
+            <button
+              onClick={() => { setSubMode('syllable'); setScreen('mode-select') }}
+              className="card p-5 text-center hover:border-cyan-500/50 hover:bg-zinc-800/50 transition-all group animate-slide-up"
+              style={{ animationDelay: '100ms' }}
+            >
+              <div className="text-3xl mb-2">🔊</div>
+              <h3 className="text-white font-bold text-sm mb-0.5 group-hover:text-cyan-400 transition-colors">Syllables</h3>
+              <p className="text-zinc-500 text-xs">Complete Korean syllable blocks</p>
+            </button>
+            <button
+              onClick={() => { setSubMode('letter'); setScreen('mode-select') }}
+              className="card p-5 text-center hover:border-cyan-500/50 hover:bg-zinc-800/50 transition-all group animate-slide-up"
+              style={{ animationDelay: '200ms' }}
+            >
+              <div className="text-3xl mb-2">🔤</div>
+              <h3 className="text-white font-bold text-sm mb-0.5 group-hover:text-cyan-400 transition-colors">Letters</h3>
+              <p className="text-zinc-500 text-xs">Individual jamo consonants &amp; vowels</p>
+            </button>
+          </div>
+
+          <button onClick={onBack} className="text-zinc-500 hover:text-zinc-300 transition-colors text-xs">
+            ← Back to game selection
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Mode Select
+  if (screen === 'mode-select') {
+    const label = getLabel(subMode)
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-4 overflow-y-auto">
+        <div className="text-center max-w-lg w-full animate-fade-in">
+          <div className="text-5xl mb-3 font-hangul opacity-80">🔊</div>
+          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+            Listen It!
+          </h1>
+          <p className="text-zinc-400 mb-6 text-sm leading-relaxed max-w-md mx-auto">
+            Hear a Korean {label}, pick the correct one.
           </p>
 
           <div className="card text-left p-4 max-w-md mx-auto mb-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
@@ -240,7 +290,7 @@ export default function ListenGame({ onGameComplete, onBack }) {
               <div>
                 <h3 className="text-white font-semibold text-sm mb-1">How to Play</h3>
                 <p className="text-zinc-500 text-xs leading-relaxed">
-                  A Korean syllable will be played aloud. Tap the correct Hangul syllable from 4 choices.
+                  A Korean {label} will be played aloud. Tap the correct Hangul {label} from 4 choices.
                   Build your listening comprehension!
                 </p>
               </div>
@@ -265,11 +315,11 @@ export default function ListenGame({ onGameComplete, onBack }) {
           </div>
 
           <p className="text-zinc-600 text-xs">
-            {DECK_SIZE} syllables • {DECK_SIZE * 1} points max
+            {DECK_SIZE} {label}s • {DECK_SIZE * 1} points max
           </p>
 
-          <button onClick={onBack} className="mt-4 text-zinc-500 hover:text-zinc-300 transition-colors text-xs">
-            ← Back to game selection
+          <button onClick={() => setScreen('start')} className="mt-4 text-zinc-500 hover:text-zinc-300 transition-colors text-xs">
+            ← Back to topic selection
           </button>
         </div>
       </div>
@@ -283,7 +333,7 @@ export default function ListenGame({ onGameComplete, onBack }) {
         <div className="text-center max-w-sm w-full animate-slide-up">
           <div className="text-3xl mb-2">⏱️</div>
           <h2 className="text-xl font-bold mb-1">Select Difficulty</h2>
-          <p className="text-zinc-400 mb-5 text-sm">Time per syllable to answer</p>
+          <p className="text-zinc-400 mb-5 text-sm">Time per {getLabel(subMode)} to answer</p>
           <div className="space-y-2">
             {Object.entries(difficultySettings).map(([key, settings], i) => (
               <button
@@ -311,7 +361,7 @@ export default function ListenGame({ onGameComplete, onBack }) {
 
   // Complete Screen
   if (screen === 'complete') {
-    const maxScore = deck.length * 2
+    const maxScore = deck.length * 1
     const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0
     const correctCount = results.filter(r => r.correct).length
 
@@ -375,18 +425,19 @@ export default function ListenGame({ onGameComplete, onBack }) {
 
       <div className="flex-1 flex flex-col items-center justify-center px-4">
         {showFeedback && feedbackResult ? (
-          <ListenFeedback
-            result={feedbackResult}
-            syllable={currentSyllable}
-            onNext={handleNext}
-            onSpeak={() => speakSyllable(currentSyllable)}
-            speaking={audioPlaying}
-          />
+            <ListenFeedback
+              result={feedbackResult}
+              syllable={currentSyllable}
+              onNext={handleNext}
+              onSpeak={() => speakSyllable(currentSyllable)}
+              speaking={audioPlaying}
+              label={getLabel(subMode)}
+            />
         ) : currentSyllable ? (
           <div className="w-full max-w-md animate-slide-up">
             {/* Listen prompt */}
             <div className="text-center mb-6">
-              <p className="text-zinc-500 text-xs mb-3">Which syllable did you hear?</p>
+              <p className="text-zinc-500 text-xs mb-3">Which {getLabel(subMode)} did you hear?</p>
               <button
                 onClick={() => speakSyllable(currentSyllable)}
                 disabled={audioPlaying}
@@ -455,7 +506,7 @@ export default function ListenGame({ onGameComplete, onBack }) {
   )
 }
 
-function ListenFeedback({ result, syllable, onNext, onSpeak, speaking }) {
+function ListenFeedback({ result, syllable, onNext, onSpeak, speaking, label = 'syllable' }) {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
       <div className="bg-zinc-900/95 border border-zinc-800 rounded-xl p-5 max-w-sm w-full animate-slide-up">
@@ -474,7 +525,7 @@ function ListenFeedback({ result, syllable, onNext, onSpeak, speaking }) {
           {result.correct ? (
             <>
               <div className="text-green-400 text-sm font-bold mb-1">Correct!</div>
-              <div className="text-zinc-300 text-xs">You picked the right syllable.</div>
+              <div className="text-zinc-300 text-xs">You picked the right {label}.</div>
             </>
           ) : result.timedOut ? (
             <>

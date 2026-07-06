@@ -27,13 +27,23 @@ function getSoundOptions(correctAnswer) {
   return options.sort(() => Math.random() - 0.5)
 }
 
-export default function LearnTab({ onGameComplete, onGameStateChange }) {
+export default function LearnTab({ onGameComplete, onGameStateChange, backSignal }) {
   const [gameType, setGameType] = useState(null) // null | 'letter' | 'spell' | 'listen'
 
   const setGameTypeWrapped = useCallback((type) => {
     setGameType(type)
     onGameStateChange(type !== null)
   }, [onGameStateChange])
+
+  const gameTypeRef = useRef(gameType)
+  gameTypeRef.current = gameType
+
+  useEffect(() => {
+    if (gameTypeRef.current !== null) {
+      setGameType(null)
+      onGameStateChange(false)
+    }
+  }, [backSignal, onGameStateChange])
 
   if (gameType === 'listen') {
     return <ListenGame onGameComplete={onGameComplete} onBack={() => setGameTypeWrapped(null)} />
@@ -62,7 +72,8 @@ export default function LearnTab({ onGameComplete, onGameStateChange }) {
         <div className="grid grid-cols-1 gap-3 max-w-sm mx-auto">
           <button
             onClick={() => setGameTypeWrapped('letter')}
-            className="card p-5 text-left hover:border-purple-500/50 hover:bg-zinc-800/50 transition-all group"
+            className="card p-5 text-left hover:border-purple-500/50 hover:bg-zinc-800/50 transition-all group animate-scale-in"
+            style={{ animationDelay: '100ms' }}
           >
             <div className="flex items-center gap-4">
               <img src="icons/recognized_icon.png" className="w-[3.75rem] h-[3.75rem]" alt="" />
@@ -75,7 +86,8 @@ export default function LearnTab({ onGameComplete, onGameStateChange }) {
 
           <button
             onClick={() => setGameTypeWrapped('listen')}
-            className="card p-5 text-left hover:border-cyan-500/50 hover:bg-zinc-800/50 transition-all group"
+            className="card p-5 text-left hover:border-cyan-500/50 hover:bg-zinc-800/50 transition-all group animate-scale-in"
+            style={{ animationDelay: '200ms' }}
           >
             <div className="flex items-center gap-4">
               <img src="icons/listen_icon.png" className="w-[3.75rem] h-[3.75rem]" alt="" />
@@ -88,7 +100,8 @@ export default function LearnTab({ onGameComplete, onGameStateChange }) {
 
           <button
             onClick={() => setGameTypeWrapped('spell')}
-            className="card p-5 text-left hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group"
+            className="card p-5 text-left hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group animate-scale-in"
+            style={{ animationDelay: '300ms' }}
           >
             <div className="flex items-center gap-4">
               <img src="icons/spell_icon.png" className="w-[3.75rem] h-[3.75rem]" alt="" />

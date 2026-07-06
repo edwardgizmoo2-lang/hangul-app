@@ -3,6 +3,7 @@ import Header from './components/Header'
 import ScrollToTopButton from './components/ScrollToTopButton'
 import Loading from './components/Loading'
 import { getStats, getLetterMastery, saveGameSession } from './utils/storage'
+import { isNative } from './utils/platform'
 
 const LearnTab = lazy(() => import('./components/LearnTab'))
 const HangulTab = lazy(() => import('./components/HangulTab'))
@@ -14,6 +15,7 @@ function App() {
   const [letterMastery, setLetterMastery] = useState({})
   const [gameInProgress, setGameInProgress] = useState(false)
   const [pendingTab, setPendingTab] = useState(null)
+  const [backSignal, setBackSignal] = useState(0)
   const scrollRef = useRef(null)
 
   const loadStats = useCallback(async () => {
@@ -35,6 +37,21 @@ function App() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
+
+  useEffect(() => {
+    if (!isNative()) return
+    let remove = () => {}
+    import('@capacitor/app').then(({ App }) => {
+      App.addListener('backButton', () => {
+        if (gameInProgress) {
+          setBackSignal(s => s + 1)
+        } else if (activeTab !== 'learn') {
+          setActiveTab('learn')
+        }
+      }).then(h => { remove = h.remove })
+    })
+    return () => remove()
+  }, [gameInProgress, activeTab])
 
   const handleGameComplete = async (gameResult) => {
     await saveGameSession(gameResult)
@@ -81,7 +98,7 @@ function App() {
       <main ref={scrollRef} className="flex-1 overflow-y-auto">
         <Suspense fallback={<div className="flex items-center justify-center h-full"><Loading size="lg" /></div>}>
           {activeTab === 'learn' && (
-            <LearnTab onGameComplete={handleGameComplete} onGameStateChange={setGameInProgress} />
+            <LearnTab onGameComplete={handleGameComplete} onGameStateChange={setGameInProgress} backSignal={backSignal} />
           )}
           {activeTab === 'hangul' && (
             <HangulTab />

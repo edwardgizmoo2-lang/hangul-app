@@ -119,16 +119,16 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
             </h1>
             <p className="text-zinc-500 text-xs">Track your Hangul mastery journey</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 animate-fade-in">
             <button
               onClick={onRefresh}
-              className="px-3 py-1.5 bg-zinc-800 text-zinc-400 rounded-lg hover:bg-zinc-700 hover:text-zinc-200 transition-colors text-xs font-medium"
+              className="px-4 py-2 bg-zinc-800 text-zinc-400 rounded-lg hover:bg-zinc-700 hover:text-zinc-200 transition-all text-sm font-medium hover:scale-105 active:scale-95"
             >
               Refresh
             </button>
             <button
               onClick={() => setConfirmReset(true)}
-              className="px-3 py-1.5 bg-zinc-800 text-red-400 rounded-lg hover:bg-red-900/50 hover:text-red-300 transition-colors text-xs font-medium"
+              className="px-4 py-2 bg-zinc-800 text-red-400 rounded-lg hover:bg-red-900/50 hover:text-red-300 transition-all text-sm font-medium hover:scale-105 active:scale-95"
             >
               Reset All
             </button>
@@ -194,12 +194,12 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
         </div>
 
         {/* View Toggle */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2 animate-fade-in">
           <button
             onClick={() => setViewMode('grid')}
-            className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all hover:scale-105 active:scale-95 ${
               viewMode === 'grid'
-                ? 'bg-purple-600 text-white'
+                ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'
                 : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'
             }`}
           >
@@ -207,9 +207,9 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
           </button>
           <button
             onClick={() => setViewMode('list')}
-            className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all hover:scale-105 active:scale-95 ${
               viewMode === 'list'
-                ? 'bg-purple-600 text-white'
+                ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'
                 : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'
             }`}
           >
@@ -218,7 +218,7 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
         </div>
 
         {/* Letter Mastery Grid/List */}
-        <div className="card p-4 animate-slide-up" style={{ animationDelay: '400ms' }}>
+        <div className="card p-4">
           {viewMode === 'grid' ? (
             <LetterGrid letters={letterProgress} />
           ) : (
@@ -323,14 +323,14 @@ function LetterGrid({ letters }) {
   return (
     <div className="space-y-4">
       {grouped.map(([category, items]) => (
-        <div key={category}>
+        <div key={category} className="animate-fade-in">
           <h3 className="text-sm font-semibold text-zinc-400 mb-2 pb-1 border-b border-zinc-800 flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
             {category}
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
-            {items.map(letter => (
-              <MasteryCard key={letter.key} letter={letter} />
+            {items.map((letter, idx) => (
+              <MasteryCard key={letter.key} letter={letter} index={idx} />
             ))}
           </div>
         </div>
@@ -360,14 +360,14 @@ function LetterList({ letters }) {
   return (
     <div className="space-y-6">
       {grouped.map(([category, items]) => (
-        <div key={category}>
+        <div key={category} className="animate-fade-in">
           <h3 className="text-lg font-semibold text-zinc-400 mb-3 pb-2 border-b border-zinc-800 flex items-center gap-2">
             <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
             {category}
           </h3>
           <div className="space-y-2">
-            {items.map(letter => (
-              <MasteryRow key={letter.key} letter={letter} />
+            {items.map((letter, idx) => (
+              <MasteryRow key={letter.key} letter={letter} index={idx} />
             ))}
           </div>
         </div>
@@ -376,14 +376,14 @@ function LetterList({ letters }) {
   )
 }
 
-function MasteryCard({ letter }) {
+function MasteryCard({ letter, index = 0 }) {
   const level = letter.level
   const borderColor = getCardBorderColor(level)
   const gradient = getMasteryColor(level)
   const label = getMasteryLabel(level)
 
   return (
-    <div className={`bg-zinc-900/80 border ${borderColor} rounded-lg p-4 hover:scale-105 transition-all duration-200 group`}>
+    <div className={`bg-zinc-900/80 border ${borderColor} rounded-lg p-4 hover:scale-105 transition-all duration-200 group animate-scale-in`} style={{ animationDelay: `${index * 40}ms` }}>
       <div className="text-center mb-2">
         <span className="text-4xl font-hangul font-light block leading-tight">{letter.character || letter.char}</span>
         <span className="text-[11px] text-zinc-500">{letter.romanization}</span>
@@ -419,13 +419,13 @@ function MasteryCard({ letter }) {
   )
 }
 
-function MasteryRow({ letter }) {
+function MasteryRow({ letter, index = 0 }) {
   const level = letter.level
   const gradient = getMasteryColor(level)
   const label = getMasteryLabel(level)
 
   return (
-    <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-2 hover:border-purple-500/30 transition-colors flex items-center gap-3">
+    <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-2 hover:border-purple-500/30 transition-colors flex items-center gap-3 animate-scale-in" style={{ animationDelay: `${index * 30}ms` }}>
       <span className="text-lg font-hangul font-light w-8 text-center">{letter.character || letter.char}</span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-0.5">
