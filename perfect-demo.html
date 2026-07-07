@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perfect Score Demo</title>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #09090b;
+    color: #e4e4e7;
+    font-family: system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  button {
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #9333ea, #a855f7);
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(168,85,247,0.3);
+    transition: all 0.2s;
+  }
+  button:hover { transform: scale(1.05); box-shadow: 0 8px 32px rgba(168,85,247,0.5); }
+  button:active { transform: scale(0.95); }
+
+  .card {
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    width: 260px;
+    transition: all 0.3s;
+  }
+  .card .score {
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #a78bfa, #22d3ee);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .card .label { color: #71717a; font-size: 12px; margin-top: 4px; }
+  .bar { height: 8px; background: #27272a; border-radius: 4px; margin-top: 12px; overflow: hidden; }
+  .bar-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #a78bfa, #22d3ee); border-radius: 4px; transition: width 1s; }
+
+  .card.perfect {
+    border-color: rgba(251,191,36,0.5);
+    animation: perfect-glow 1.5s ease-in-out infinite;
+  }
+
+  .overlay {
+    position: fixed; inset: 0; z-index: 50;
+    pointer-events: none;
+  }
+  .overlay.active { pointer-events: auto; }
+
+  .banner {
+    position: fixed; inset: 0; z-index: 55;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+    animation: fade-in 0.4s ease-out both;
+  }
+  .banner-content {
+    text-align: center;
+    animation: slide-up 0.4s ease-out both;
+  }
+  .banner-content .emoji {
+    font-size: 72px;
+    margin-bottom: 12px;
+    animation: bounce-in 0.4s ease-out forwards;
+  }
+  .banner-content h1 {
+    font-size: 48px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #fbbf24, #fef08a, #fde68a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 20px rgba(251,191,36,0.5));
+  }
+  .banner-content p { color: #a1a1aa; margin-top: 8px; font-size: 14px; }
+
+  @keyframes perfect-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(251,191,36,0.3), 0 0 40px rgba(251,191,36,0.1); }
+    50% { box-shadow: 0 0 30px rgba(251,191,36,0.5), 0 0 60px rgba(251,191,36,0.2); }
+  }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slide-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes bounce-in {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.12); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+  .overlay.fade-out { animation: fade-out 0.3s ease-out both; }
+  .banner-content.fade-out {
+    opacity: 0 !important;
+    transform: scale(0.9) !important;
+    transition: all 0.3s ease-out;
+  }
+</style>
+</head>
+<body>
+  <div style="text-align:center">
+    <p style="color:#71717a;margin-bottom:8px;font-size:13px">Click to see the perfect score effect</p>
+    <button onclick="triggerPerfect()">💯 Show Perfect!</button>
+  </div>
+
+  <div class="card" id="scoreCard">
+    <div class="score" id="scoreDisplay">16 / 16</div>
+    <div class="label">Total Score</div>
+    <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+  </div>
+
+  <div class="overlay" id="overlay" onclick="dismiss()">
+    <div class="banner" id="banner">
+      <div class="banner-content">
+        <div class="emoji">💯</div>
+        <h1>PERFECT!</h1>
+        <p>Every answer correct</p>
+      </div>
+    </div>
+  </div>
+
+<script>
+  let timeoutId = null
+  let confettiTimers = []
+
+  function triggerPerfect() {
+    dismiss()
+    const card = document.getElementById('scoreCard')
+    card.classList.add('perfect')
+    document.getElementById('scoreDisplay').textContent = '16 / 16'
+    document.getElementById('barFill').style.width = '100%'
+
+    const overlay = document.getElementById('overlay')
+    overlay.classList.remove('fade-out')
+    overlay.classList.add('active')
+    overlay.style.animation = 'none'
+    overlay.offsetHeight
+    overlay.style.animation = ''
+
+    const banner = document.getElementById('banner')
+    banner.style.display = 'flex'
+    banner.style.animation = 'none'
+    banner.offsetHeight
+    banner.style.animation = ''
+
+    const bannerContent = document.querySelector('.banner-content')
+    bannerContent.classList.remove('fade-out')
+
+    // Canvas confetti — realistic look, 3 rounds
+    const count = 200
+    const defaults = { origin: { y: 0.7 } }
+
+    function fire(particleRatio, opts) {
+      confetti({ ...defaults, ...opts, particleCount: Math.floor(count * particleRatio) })
+    }
+
+    function round() {
+      fire(0.25, { spread: 26, startVelocity: 55 })
+      fire(0.2,  { spread: 60 })
+      fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 })
+      fire(0.1,  { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 })
+      fire(0.1,  { spread: 120, startVelocity: 45 })
+    }
+
+    round()
+    confettiTimers = [setTimeout(round, 700), setTimeout(round, 1400)]
+
+    if (timeoutId) clearTimeout(timeoutId)
+    timeoutId = setTimeout(dismiss, 5000)
+  }
+
+  function dismiss() {
+    confettiTimers.forEach(t => clearTimeout(t))
+    confettiTimers = []
+    if (timeoutId) { clearTimeout(timeoutId); timeoutId = null }
+    const overlay = document.getElementById('overlay')
+    overlay.classList.add('fade-out')
+    const bannerContent = document.querySelector('.banner-content')
+    bannerContent.classList.add('fade-out')
+    setTimeout(() => {
+      overlay.classList.remove('active', 'fade-out')
+      document.getElementById('banner').style.display = 'none'
+      bannerContent.classList.remove('fade-out')
+      document.getElementById('scoreCard').classList.remove('perfect')
+    }, 300)
+  }
+</script>
+</body>
+</html>

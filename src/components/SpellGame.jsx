@@ -3,6 +3,7 @@ import { syllables, SPELL_CONSONANTS, SPELL_VOWELS, difficultySettings, consonan
 import GameControls from './GameControls'
 import ProgressBar from './ProgressBar'
 import CircularTimer from './CircularTimer'
+import PerfectOverlay from './PerfectOverlay'
 
 const DECK_SIZE = 20
 
@@ -18,7 +19,7 @@ function shuffle(arr) {
   return a
 }
 
-export default function SpellGame({ onGameComplete, onBack }) {
+export default function SpellGame({ onGameComplete, onBack, gameType }) {
   const [screen, setScreen] = useState('start')
   const [mode, setMode] = useState(null)
   const [difficulty, setDifficulty] = useState(null)
@@ -32,6 +33,7 @@ export default function SpellGame({ onGameComplete, onBack }) {
   const [timeRemaining, setTimeRemaining] = useState(0)
   const [totalTime, setTotalTime] = useState(0)
   const [confirmQuit, setConfirmQuit] = useState(false)
+  const [showPerfect, setShowPerfect] = useState(false)
 
   const timerRef = useRef(null)
   const currentSyllable = deck[currentIndex]
@@ -136,11 +138,12 @@ export default function SpellGame({ onGameComplete, onBack }) {
 
   const requestQuit = useCallback(() => {
     if (results.length > 0) {
+      playSfx('leave_game')
       setConfirmQuit(true)
     } else {
       confirmQuitGame()
     }
-  }, [results, confirmQuitGame])
+  }, [results, confirmQuitGame, playSfx])
 
   const playLetterAudio = useCallback(async (char) => {
     const audioFile = AUDIO_MAP[char]
@@ -207,14 +210,31 @@ export default function SpellGame({ onGameComplete, onBack }) {
     }
   }, [currentIndex, deck, mode, difficulty, startTimer])
 
+  useEffect(() => {
+    if (screen === 'complete') {
+      const totalPossible = deck.length * 1
+      const pct = score / totalPossible
+      if (pct >= 1) playSfx('Perfect_Score')
+      else if (pct >= 0.8) playSfx('High_Score')
+      else if (pct >= 0.5) playSfx('Mid_Score')
+      else playSfx('Low_Score')
+      if (score >= totalPossible) {
+        setShowPerfect(true)
+      }
+    }
+  }, [screen, score, deck.length])
+
   const handleFinishGame = useCallback(() => {
+    const totalPossible = deck.length * 1
+    const isPerfect = score >= totalPossible
     const session = {
       id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
       date: new Date().toISOString().split('T')[0],
       mode: mode || 'freeplay',
       difficulty: difficulty || undefined,
+      gameType: gameType,
       score,
-      totalPossible: deck.length * 1,
+      totalPossible,
       completedLetters: deck.length,
       totalLetters: deck.length,
       letterResults: results.map(r => ({
@@ -227,6 +247,7 @@ export default function SpellGame({ onGameComplete, onBack }) {
         points: r.points,
       })),
       completedAt: new Date().toISOString(),
+      perfect: isPerfect,
     }
     onGameComplete(session)
     confirmQuitGame()
@@ -325,18 +346,26 @@ export default function SpellGame({ onGameComplete, onBack }) {
 
   // Complete Screen
   if (screen === 'complete') {
-    const maxScore = deck.length * 2
+    const maxScore = deck.length * 1
     const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0
+    const isPerfect = score >= maxScore
     const correctCount = results.filter(r => r.correct).length
 
     return (
       <div className="flex-1 flex items-center justify-center p-4">
+        {showPerfect && <PerfectOverlay onDismiss={() => setShowPerfect(false)} />}
         <div className="text-center max-w-sm w-full animate-slide-up">
-          <div className="text-5xl mb-2">{pct >= 80 ? '🎉' : pct >= 50 ? '👍' : '💪'}</div>
-          <h2 className="text-2xl font-bold mb-1">Spell Complete!</h2>
+          <div className="text-5xl mb-2">{isPerfect ? '💯' : pct >= 80 ? '🎉' : pct >= 50 ? '👍' : '💪'}</div>
+          {isPerfect ? (
+            <h2 className="text-3xl font-extrabold bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-200 bg-clip-text text-transparent mb-1 drop-shadow-[0_0_10px_rgba(251,191,36,0.3)]">
+              PERFECT!
+            </h2>
+          ) : (
+            <h2 className="text-2xl font-bold mb-1">Spell Complete!</h2>
+          )}
           <p className="text-zinc-400 mb-5 text-sm">{mode === 'timer' ? 'Timer Mode' : 'Freeplay'}</p>
 
-          <div className="card p-4 mb-5 animate-slide-up" style={{ animationDelay: '100ms' }}>
+          <div className={`card p-4 mb-5 animate-slide-up ${isPerfect ? 'border-amber-400/50 animate-perfect-glow' : ''}`} style={{ animationDelay: '100ms' }}>
             <div className="text-3xl font-bold bg-gradient-to-r from-amber-400 to-red-400 bg-clip-text text-transparent mb-1">
               {score} / {maxScore}
             </div>

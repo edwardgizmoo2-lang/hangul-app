@@ -6,8 +6,15 @@ const MILESTONE_LABELS = {
   100: { emoji: '👑', label: '100-Day Streak!' },
 }
 
+import { useEffect } from 'react'
+
 export default function CelebrationOverlay({ milestone, onDismiss }) {
   const info = MILESTONE_LABELS[milestone] || { emoji: '🎉', label: 'Milestone!' }
+
+  useEffect(() => {
+    const audio = new Audio('audio/sfx/Streak_milestone.mp3')
+    audio.play().catch(() => {})
+  }, [])
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onDismiss}>

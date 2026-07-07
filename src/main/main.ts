@@ -13,12 +13,14 @@ interface GameSession {
   date: string
   mode: 'timer' | 'freeplay'
   difficulty?: 'easy' | 'medium' | 'hard' | 'pro'
+  gameType: string
   score: number
   totalPossible: number
   completedLetters: number
   totalLetters: number
   letterResults: LetterResult[]
   completedAt: string
+  perfect?: boolean
 }
 
 interface LetterResult {
@@ -39,6 +41,12 @@ interface ProgressData {
   streak: number
   letterMastery: Record<string, number>
   gameHistory: GameSession[]
+  achievements: string[]
+  challengeProgress: Record<string, { progress: number; target: number; completed: boolean; isCount?: boolean; valueFn?: string | null }>
+  challengeDay: string
+  dailyGoal: number
+  streakFreezes: number
+  lastLetterPractice: Record<string, string>
 }
 
 const defaultProgress: ProgressData = {
@@ -48,6 +56,12 @@ const defaultProgress: ProgressData = {
   streak: 0,
   letterMastery: {},
   gameHistory: [],
+  achievements: [],
+  challengeProgress: {},
+  challengeDay: '',
+  dailyGoal: 100,
+  streakFreezes: 0,
+  lastLetterPractice: {},
 }
 
 const STREAK_MILESTONES = [7, 14, 30, 60, 100]
@@ -186,14 +200,23 @@ ipcMain.handle('progress:save', async (_, session: GameSession) => {
   
   const today = new Date().toISOString().split('T')[0]
   const oldStreak = progress.streak || 0
-  const newStreak = calculateStreak(progress)
+  let newStreak = calculateStreak(progress)
+  
+  // Apply streak freeze
+  if (newStreak === 1 && oldStreak > 1 && (progress.streakFreezes || 0) > 0) {
+    newStreak = oldStreak
+    progress.streakFreezes--
+  }
+
   const multiplier = calcMultiplier(oldStreak)
   const bonusPoints = Math.round(session.score * (multiplier - 1))
   
-  // Update letter mastery
+  // Update letter mastery and practice dates
   const updatedMastery = { ...progress.letterMastery }
+  const updatedLastPractice = { ...(progress.lastLetterPractice || {}) }
   session.letterResults.forEach(result => {
     const key = result.letter
+    if (key) updatedLastPractice[key] = today
     const current = updatedMastery[key] || 0
     if (result.typeCorrect && result.soundCorrect) {
       updatedMastery[key] = Math.min(5, current + 1)
@@ -201,6 +224,13 @@ ipcMain.handle('progress:save', async (_, session: GameSession) => {
       updatedMastery[key] = Math.max(0, current - 1)
     }
   })
+
+  // Grant freeze on milestone
+  const FREEZE_MILESTONES = [7, 14, 30, 60, 100]
+  const freezeMilestone = FREEZE_MILESTONES.find(m => newStreak >= m && (oldStreak || 0) < m)
+  if (freezeMilestone) {
+    progress.streakFreezes = (progress.streakFreezes || 0) + 1
+  }
   
   const updatedProgress: ProgressData = {
     ...progress,
@@ -209,7 +239,8 @@ ipcMain.handle('progress:save', async (_, session: GameSession) => {
     lastPlayedDate: today,
     streak: newStreak,
     letterMastery: updatedMastery,
-    gameHistory: [...progress.gameHistory, session].slice(-100), // Keep last 100 games
+    lastLetterPractice: updatedLastPractice,
+    gameHistory: [...progress.gameHistory, session].slice(-100),
   }
   
   await saveProgress(updatedProgress)
@@ -218,12 +249,21 @@ ipcMain.handle('progress:save', async (_, session: GameSession) => {
     milestone: detectMilestone(newStreak, oldStreak),
     multiplier,
     bonusPoints,
+    freezeMilestone,
   }
 })
 
 ipcMain.handle('progress:reset', async () => {
   await saveProgress(defaultProgress)
   return defaultProgress
+})
+
+ipcMain.handle('progress:updateMeta', async (_, meta: { achievements: string[]; challengeProgress: any; challengeDay: string }) => {
+  const progress = await loadProgress()
+  progress.achievements = meta.achievements
+  progress.challengeProgress = meta.challengeProgress
+  progress.challengeDay = meta.challengeDay
+  await saveProgress(progress)
 })
 
 ipcMain.handle('progress:updateLetterStat', async (_, letter: string, correct: boolean) => {

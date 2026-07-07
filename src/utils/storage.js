@@ -1,4 +1,6 @@
 import { isElectron, isNative } from './platform'
+import ACHIEVEMENTS from '../data/achievements'
+import { pickDailyChallenges } from '../data/challenges'
 
 const STORAGE_KEY = 'hangul-progress'
 const STREAK_MILESTONES = [7, 14, 30, 60, 100]
@@ -19,6 +21,42 @@ function detectMilestone(newStreak, oldStreak) {
   return STREAK_MILESTONES.find(m => newStreak >= m && (oldStreak || 0) < m) || null
 }
 
+const FREEZE_MILESTONES = [7, 14, 30, 60, 100]
+
+function detectFreezeMilestone(newStreak, oldStreak) {
+  return FREEZE_MILESTONES.find(m => newStreak >= m && (oldStreak || 0) < m) || null
+}
+
+function applyStreakFreeze(progress, newStreak, oldStreak) {
+  let finalStreak = newStreak
+  let freezeConsumed = false
+  if (newStreak === 1 && oldStreak > 1 && (progress.streakFreezes || 0) > 0) {
+    finalStreak = oldStreak
+    progress.streakFreezes = (progress.streakFreezes || 0) - 1
+    freezeConsumed = true
+  }
+  return { finalStreak, freezeConsumed }
+}
+
+const DECAY_DAYS = 7
+const DECAY_MAX_LOSS = 2
+
+function applyLetterDecay(letterMastery, lastLetterPractice) {
+  if (!lastLetterPractice) return letterMastery
+  const today = new Date()
+  const decayed = { ...letterMastery }
+  Object.keys(decayed).forEach(key => {
+    const lastDate = lastLetterPractice[key]
+    if (!lastDate) return
+    const daysSince = Math.floor((today - new Date(lastDate)) / (1000 * 60 * 60 * 24))
+    if (daysSince >= DECAY_DAYS) {
+      const loss = Math.min(DECAY_MAX_LOSS, Math.floor(daysSince / DECAY_DAYS))
+      decayed[key] = Math.max(0, (decayed[key] || 0) - loss)
+    }
+  })
+  return decayed
+}
+
 const defaultProgress = {
   totalScore: 0,
   gamesPlayed: 0,
@@ -26,6 +64,12 @@ const defaultProgress = {
   streak: 0,
   letterMastery: {},
   gameHistory: [],
+  dailyGoal: 100,
+  achievements: [],
+  challengeProgress: {},
+  challengeDay: '',
+  streakFreezes: 0,
+  lastLetterPractice: {},
 }
 
 // --- Electron storage (IPC to main process) ---
@@ -79,13 +123,17 @@ async function capacitorSaveSession(session) {
   const progress = await capacitorLoad()
   const today = new Date().toISOString().split('T')[0]
   const oldStreak = progress.streak || 0
-  const newStreak = calculateStreak(progress)
+  let newStreak = calculateStreak(progress)
+  const { finalStreak, freezeConsumed } = applyStreakFreeze(progress, newStreak, oldStreak)
+  newStreak = finalStreak
   const multiplier = calcMultiplier(oldStreak)
   const bonusPoints = Math.round(session.score * (multiplier - 1))
 
   const updatedMastery = { ...progress.letterMastery }
+  const updatedLastPractice = { ...(progress.lastLetterPractice || {}) }
   session.letterResults.forEach(result => {
     const key = result.letter
+    if (key) updatedLastPractice[key] = today
     const current = updatedMastery[key] || 0
     if (result.typeCorrect && result.soundCorrect) {
       updatedMastery[key] = Math.min(5, current + 1)
@@ -94,6 +142,22 @@ async function capacitorSaveSession(session) {
     }
   })
 
+  const challengeProgress = getOrInitChallenges(progress)
+  updateChallengeProgress(challengeProgress, session, progress)
+  const achResult = checkNewAchievements({
+    ...progress,
+    totalScore: progress.totalScore + session.score + bonusPoints,
+    gamesPlayed: progress.gamesPlayed + 1,
+    letterMastery: updatedMastery,
+    streak: newStreak,
+  })
+
+  const milestone = detectMilestone(newStreak, oldStreak)
+  const freezeMilestone = detectFreezeMilestone(newStreak, oldStreak)
+  if (freezeMilestone) {
+    progress.streakFreezes = (progress.streakFreezes || 0) + 1
+  }
+
   const updated = {
     ...progress,
     totalScore: progress.totalScore + session.score + bonusPoints,
@@ -101,15 +165,23 @@ async function capacitorSaveSession(session) {
     lastPlayedDate: today,
     streak: newStreak,
     letterMastery: updatedMastery,
+    lastLetterPractice: updatedLastPractice,
     gameHistory: [...progress.gameHistory, session].slice(-100),
+    achievements: achResult.achievements,
+    challengeProgress,
+    challengeDay: today,
   }
 
   await capacitorSave(updated)
   return {
     progress: updated,
-    milestone: detectMilestone(newStreak, oldStreak),
+    milestone,
     multiplier,
     bonusPoints,
+    newlyUnlocked: achResult.newlyUnlocked,
+    challengeProgress,
+    freezeConsumed,
+    freezeEarned: freezeMilestone || null,
   }
 }
 
@@ -131,30 +203,116 @@ async function capacitorUpdateLetter(letter, correct) {
   await capacitorSave(progress)
 }
 
+// --- Achievements & Challenges ---
+
+function checkNewAchievements(progress) {
+  const stats = toStats(progress)
+  const unlocked = new Set(progress.achievements || [])
+  const newlyUnlocked = []
+  ACHIEVEMENTS.forEach(a => {
+    if (unlocked.has(a.id)) return
+    if (a.check(stats)) {
+      unlocked.add(a.id)
+      newlyUnlocked.push(a)
+    }
+  })
+  return { achievements: [...unlocked], newlyUnlocked }
+}
+
+function getOrInitChallenges(progress) {
+  const today = new Date().toISOString().split('T')[0]
+  if (progress.challengeDay === today && progress.challengeProgress && Object.keys(progress.challengeProgress).length > 0) {
+    return { ...progress.challengeProgress }
+  }
+  const daily = pickDailyChallenges(today)
+  const challengeProgress = {}
+  daily.forEach(c => {
+    challengeProgress[c.id] = {
+      progress: 0,
+      target: c.target,
+      completed: false,
+    }
+  })
+  return challengeProgress
+}
+
+function updateChallengeProgress(challengeProgress, session, progress) {
+  const today = new Date().toISOString().split('T')[0]
+  const daily = pickDailyChallenges(today)
+  const stats = toStats(progress)
+  const beforeMastery = { ...(progress.letterMastery || {}) }
+  session.letterResults?.forEach(result => {
+    const key = result.letter
+    if (!key) return
+    const current = beforeMastery[key] || 0
+    if (result.typeCorrect && result.soundCorrect) {
+      beforeMastery[key] = Math.max(0, current - 1)
+    } else if (!result.typeCorrect && !result.soundCorrect) {
+      beforeMastery[key] = Math.min(5, current + 1)
+    }
+  })
+  const beforeStats = toStats({ ...progress, letterMastery: beforeMastery })
+  Object.keys(challengeProgress).forEach(cid => {
+    const cp = challengeProgress[cid]
+    if (cp.completed) return
+    const def = daily.find(d => d.id === cid)
+    if (!def) return
+    if (def.check(session, { letterStats: stats.letterStats, letterStatsBefore: beforeStats.letterStats, streak: stats.streak })) {
+      cp.progress = Math.min(cp.target, cp.progress + 1)
+    }
+    if (cp.progress >= cp.target) {
+      cp.completed = true
+    }
+  })
+}
+
 // --- Unified API ---
 
 function toStats(progress) {
   const history = progress.gameHistory || []
+  const today = new Date().toISOString().split('T')[0]
+  const baseMastery = progress.letterMastery || {}
+  const decayedMastery = applyLetterDecay(baseMastery, progress.lastLetterPractice || {})
   return {
     gameSessions: history,
-    letterStats: progress.letterMastery || {},
+    letterStats: decayedMastery,
+    rawLetterStats: baseMastery,
     streak: {
       current: progress.streak || 0,
-      longest: Math.max(...(history).reduce((acc, g) => {
-        const last = acc.length > 0 ? acc[acc.length - 1] : 0
-        acc.push(g.score > 0 ? last + 1 : 0)
-        return acc
-      }, [0]), 0),
+      longest: (() => {
+        const uniqueDays = [...new Set(history.map(g => g.date))].sort()
+        let longest = 0, run = 0
+        for (let i = 0; i < uniqueDays.length; i++) {
+          if (i === 0) { run = 1 }
+          else {
+            const prev = new Date(uniqueDays[i - 1])
+            const curr = new Date(uniqueDays[i])
+            const diff = (curr - prev) / (1000 * 60 * 60 * 24)
+            run = diff === 1 ? run + 1 : 1
+          }
+          longest = Math.max(longest, run)
+        }
+        return longest
+      })(),
       lastPlayDate: progress.lastPlayedDate || null,
     },
     totalScore: progress.totalScore || 0,
     totalGamesCompleted: progress.gamesPlayed || 0,
+    todayScore: history
+      .filter(s => s.date === today)
+      .reduce((sum, s) => sum + (s.score || 0), 0),
+    dailyGoal: progress.dailyGoal || 100,
     personalBests: {
       bestScore: Math.max(...(history.map(g => g.score || 0)), 0),
       bestAccuracy: Math.max(...(history.map(g =>
         g.totalPossible > 0 ? Math.round((g.score / g.totalPossible) * 100) : 0
       )), 0),
     },
+    achievements: progress.achievements || [],
+    challengeProgress: progress.challengeProgress || {},
+    challengeDay: progress.challengeDay || '',
+    streakFreezes: progress.streakFreezes || 0,
+    lastLetterPractice: progress.lastLetterPractice || {},
   }
 }
 
@@ -192,7 +350,20 @@ export async function getLetterMastery() {
 export async function saveGameSession(session) {
   try {
     if (isElectron()) {
-      return await electronSave(session)
+      const result = await electronSave(session)
+      const progress = result.progress
+      const achResult = checkNewAchievements(progress)
+      const challengeProgress = getOrInitChallenges(progress)
+      updateChallengeProgress(challengeProgress, session, progress)
+      const today = new Date().toISOString().split('T')[0]
+      if (achResult.newlyUnlocked.length > 0 || challengeProgress !== progress.challengeProgress) {
+        await window.electron.data.updateMeta({
+          achievements: achResult.achievements,
+          challengeProgress,
+          challengeDay: today,
+        })
+      }
+      return { ...result, newlyUnlocked: achResult.newlyUnlocked, challengeProgress }
     } else if (isNative()) {
       return await capacitorSaveSession(session)
     } else {
@@ -201,12 +372,16 @@ export async function saveGameSession(session) {
       const progress = raw ? { ...defaultProgress, ...JSON.parse(raw) } : { ...defaultProgress }
       const today = new Date().toISOString().split('T')[0]
       const oldStreak = progress.streak || 0
-      const newStreak = calculateStreak(progress)
+      let newStreak = calculateStreak(progress)
+      const { finalStreak, freezeConsumed } = applyStreakFreeze(progress, newStreak, oldStreak)
+      newStreak = finalStreak
       const multiplier = calcMultiplier(oldStreak)
       const bonusPoints = Math.round(session.score * (multiplier - 1))
       const updatedMastery = { ...progress.letterMastery }
+      const updatedLastPractice = { ...(progress.lastLetterPractice || {}) }
       session.letterResults.forEach(result => {
         const key = result.letter
+        if (key) updatedLastPractice[key] = today
         const current = updatedMastery[key] || 0
         if (result.typeCorrect && result.soundCorrect) {
           updatedMastery[key] = Math.min(5, current + 1)
@@ -214,6 +389,20 @@ export async function saveGameSession(session) {
           updatedMastery[key] = Math.max(0, current - 1)
         }
       })
+      const challengeProgress = getOrInitChallenges(progress)
+      updateChallengeProgress(challengeProgress, session, progress)
+      const achResult = checkNewAchievements({
+        ...progress,
+        totalScore: progress.totalScore + session.score + bonusPoints,
+        gamesPlayed: progress.gamesPlayed + 1,
+        letterMastery: updatedMastery,
+        streak: newStreak,
+      })
+      const milestone = detectMilestone(newStreak, oldStreak)
+      const freezeMilestone = detectFreezeMilestone(newStreak, oldStreak)
+      if (freezeMilestone) {
+        progress.streakFreezes = (progress.streakFreezes || 0) + 1
+      }
       const updated = {
         ...progress,
         totalScore: progress.totalScore + session.score + bonusPoints,
@@ -221,14 +410,22 @@ export async function saveGameSession(session) {
         lastPlayedDate: today,
         streak: newStreak,
         letterMastery: updatedMastery,
+        lastLetterPractice: updatedLastPractice,
         gameHistory: [...progress.gameHistory, session].slice(-100),
+        achievements: achResult.achievements,
+        challengeProgress,
+        challengeDay: today,
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
       return {
         progress: updated,
-        milestone: detectMilestone(newStreak, oldStreak),
+        milestone,
         multiplier,
         bonusPoints,
+        newlyUnlocked: achResult.newlyUnlocked,
+        challengeProgress,
+        freezeConsumed,
+        freezeEarned: freezeMilestone || null,
       }
     }
   } catch (e) {

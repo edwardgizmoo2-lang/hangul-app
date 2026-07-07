@@ -297,6 +297,15 @@
   animation: shimmer 1.5s infinite;
 }
 
+@keyframes perfect-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.3), 0 0 40px rgba(251, 191, 36, 0.1); }
+  50% { box-shadow: 0 0 30px rgba(251, 191, 36, 0.5), 0 0 60px rgba(251, 191, 36, 0.2); }
+}
+
+.animate-perfect-glow {
+  animation: perfect-glow 1.5s ease-in-out infinite;
+}
+
 /* Android / Mobile safe areas */
 .safe-area-top {
   padding-top: env(safe-area-inset-top, 0px);

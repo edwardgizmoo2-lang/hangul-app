@@ -4,8 +4,10 @@ import ScrollToTopButton from './components/ScrollToTopButton'
 import Loading from './components/Loading'
 import CelebrationOverlay from './components/CelebrationOverlay'
 import WeeklyRecap from './components/WeeklyRecap'
+import AchievementUnlock from './components/AchievementUnlock'
 import { getStats, getLetterMastery, saveGameSession, RANKS } from './utils/storage'
 import { isNative, isElectron } from './utils/platform'
+import { version as APP_VERSION } from '../package.json'
 
 const LearnTab = lazy(() => import('./components/LearnTab'))
 const HangulTab = lazy(() => import('./components/HangulTab'))
@@ -24,6 +26,7 @@ function App() {
   const [streakBannerDismissed, setStreakBannerDismissed] = useState(false)
   const [streakBannerClosing, setStreakBannerClosing] = useState(false)
   const [streakBannerVisible, setStreakBannerVisible] = useState(false)
+  const [newAchievements, setNewAchievements] = useState([])
   const scrollRef = useRef(null)
 
   useEffect(() => {
@@ -32,6 +35,16 @@ function App() {
   }, [])
 
   const rank = RANKS.filter(r => (stats?.totalScore || 0) >= r.minScore).pop() || RANKS[0]
+  const prevRankRef = useRef(null)
+
+  useEffect(() => {
+    const currentRank = RANKS.filter(r => (stats?.totalScore || 0) >= r.minScore).pop() || RANKS[0]
+    if (prevRankRef.current && prevRankRef.current !== currentRank.title) {
+      const audio = new Audio('audio/sfx/rank_up.mp3')
+      audio.play().catch(() => {})
+    }
+    prevRankRef.current = currentRank.title
+  }, [stats?.totalScore])
 
   useEffect(() => {
     if (!window.electronAPI?.isMaximized) return
@@ -88,6 +101,9 @@ function App() {
   const handleGameComplete = async (gameResult) => {
     const result = await saveGameSession(gameResult)
     await loadStats()
+    if (result?.newlyUnlocked?.length > 0) {
+      setNewAchievements(result.newlyUnlocked)
+    }
     if (result?.milestone) {
       setMilestone(result.milestone)
     }
@@ -134,7 +150,7 @@ function App() {
         isMaximized={isMaximized}
         rank={rank}
       />
-      <main ref={scrollRef} className="flex-1 overflow-y-auto">
+      <main ref={scrollRef} className="flex-1 overflow-y-scroll">
         <Suspense fallback={<div className="flex items-center justify-center h-full"><Loading size="lg" /></div>}>
           {activeTab === 'learn' && (
             <>
@@ -172,12 +188,16 @@ function App() {
         <p className={`fixed bottom-2 text-zinc-500 text-xs font-medium pointer-events-none select-none ${
           isElectron() ? 'right-4' : 'left-1/2 -translate-x-1/2'
         }`}>
-          Made by Edward
+          Made by Edward · v{APP_VERSION}
         </p>
       )}
 
       {milestone && (
         <CelebrationOverlay milestone={milestone} onDismiss={() => setMilestone(null)} />
+      )}
+
+      {newAchievements.length > 0 && (
+        <AchievementUnlock achievements={newAchievements} onDismiss={() => setNewAchievements([])} />
       )}
 
       {showRecap && stats?.gameSessions?.length > 0 && (

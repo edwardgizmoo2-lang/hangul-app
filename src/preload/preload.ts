@@ -14,6 +14,12 @@ export interface ProgressData {
   streak: number
   letterMastery: Record<string, number>
   gameHistory: GameSession[]
+  achievements: string[]
+  challengeProgress: Record<string, { progress: number; target: number; completed: boolean }>
+  challengeDay: string
+  dailyGoal: number
+  streakFreezes: number
+  lastLetterPractice: Record<string, string>
 }
 
 export interface GameSession {
@@ -21,6 +27,7 @@ export interface GameSession {
   date: string
   mode: 'timer' | 'freeplay'
   difficulty?: 'easy' | 'medium' | 'hard' | 'pro'
+  gameType: string
   score: number
   totalPossible: number
   completedLetters: number
@@ -36,6 +43,7 @@ export interface GameSession {
     points: number
   }[]
   completedAt: string
+  perfect?: boolean
 }
 
 contextBridge.exposeInMainWorld('electron', {
@@ -51,5 +59,8 @@ contextBridge.exposeInMainWorld('electron', {
     resetProgress: (): Promise<ProgressData> => ipcRenderer.invoke('progress:reset'),
     updateLetterStat: (letter: string, correct: boolean): Promise<void> =>
       ipcRenderer.invoke('progress:updateLetterStat', letter, correct),
+    updateMeta: (meta: { achievements: string[]; challengeProgress: any; challengeDay: string }): Promise<void> =>
+      ipcRenderer.invoke('progress:updateMeta', meta),
+    getVersion: (): Promise<string> => ipcRenderer.invoke('app:getVersion'),
   },
 })

@@ -67,8 +67,8 @@ export default function Header({ activeTab, onTabChange, onMinimize, onMaximize,
             onClick={() => onTabChange('learn')}
             className={`flex-1 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${!electron ? '' : '-webkit-app-region:no-drag'} ${
               activeTab === 'learn'
-                ? 'border border-purple-500/30 bg-purple-600 text-white shadow-sm shadow-purple-500/20'
-                : 'border border-purple-500/20 text-zinc-400 hover:text-white hover:bg-zinc-800'
+                ? 'border-2 border-purple-500/40 bg-purple-600 text-white shadow-sm shadow-purple-500/20'
+                : 'border-2 border-purple-500/20 text-zinc-400 hover:text-white hover:bg-zinc-800'
             }`}
           >
             Learn
@@ -79,8 +79,8 @@ export default function Header({ activeTab, onTabChange, onMinimize, onMaximize,
             onClick={() => onTabChange('hangul')}
             className={`flex-1 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${!electron ? '' : '-webkit-app-region:no-drag'} ${
               activeTab === 'hangul'
-                ? 'border border-purple-500/30 bg-purple-600 text-white shadow-sm shadow-purple-500/20'
-                : 'border border-purple-500/20 text-zinc-400 hover:text-white hover:bg-zinc-800'
+                ? 'border-2 border-purple-500/40 bg-purple-600 text-white shadow-sm shadow-purple-500/20'
+                : 'border-2 border-purple-500/20 text-zinc-400 hover:text-white hover:bg-zinc-800'
             }`}
           >
             Hangul
@@ -91,8 +91,8 @@ export default function Header({ activeTab, onTabChange, onMinimize, onMaximize,
             onClick={() => onTabChange('progress')}
             className={`flex-1 px-5 py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center transition-all ${!electron ? '' : '-webkit-app-region:no-drag'} ${
               activeTab === 'progress'
-                ? 'border border-purple-500/30 bg-purple-600 text-white shadow-sm shadow-purple-500/20'
-                : 'border border-purple-500/20 text-zinc-400 hover:text-white hover:bg-zinc-800'
+                ? 'border-2 border-purple-500/40 bg-purple-600 text-white shadow-sm shadow-purple-500/20'
+                : 'border-2 border-purple-500/20 text-zinc-400 hover:text-white hover:bg-zinc-800'
             }`}
           >
             Progress
