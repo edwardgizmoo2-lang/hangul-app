@@ -180,7 +180,7 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
 
         {/* Streak Target */}
         {nextMilestone && streak > 0 && (
-          <div className="card p-3 animate-fade-in">
+          <div className="card p-3 animate-scale-in" style={{ animationDelay: '240ms' }}>
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs font-medium text-zinc-400">Next milestone</span>
               <span className="text-xs text-zinc-500">{streak}/{nextMilestone}d</span>
@@ -201,12 +201,12 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
 
         {/* Personal Bests */}
         {personalBests.bestScore > 0 && (
-          <div className="grid grid-cols-2 gap-2 animate-fade-in">
-            <div className="card p-3 border border-purple-500/20 bg-purple-500/5">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="card p-3 border border-purple-500/20 bg-purple-500/5 animate-scale-in" style={{ animationDelay: '80ms' }}>
               <p className="text-[10px] font-medium text-zinc-400 mb-0.5">Best Score</p>
               <p className="text-lg font-bold text-purple-400">{personalBests.bestScore}</p>
             </div>
-            <div className="card p-3 border border-amber-500/20 bg-amber-500/5">
+            <div className="card p-3 border border-amber-500/20 bg-amber-500/5 animate-scale-in" style={{ animationDelay: '160ms' }}>
               <p className="text-[10px] font-medium text-zinc-400 mb-0.5">Best Accuracy</p>
               <p className="text-lg font-bold text-amber-400">{personalBests.bestAccuracy}%</p>
             </div>

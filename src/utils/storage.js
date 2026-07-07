@@ -1,6 +1,23 @@
 import { isElectron, isNative } from './platform'
 
 const STORAGE_KEY = 'hangul-progress'
+const STREAK_MILESTONES = [7, 14, 30, 60, 100]
+
+const RANKS = [
+  { title: 'Bronze', minScore: 0, color: 'text-amber-600' },
+  { title: 'Silver', minScore: 500, color: 'text-zinc-300' },
+  { title: 'Gold', minScore: 2000, color: 'text-yellow-400' },
+  { title: 'Platinum', minScore: 5000, color: 'text-cyan-300' },
+  { title: 'Diamond', minScore: 10000, color: 'text-blue-300' },
+]
+
+function calcMultiplier(streak) {
+  return 1 + (streak || 0) * 0.05
+}
+
+function detectMilestone(newStreak, oldStreak) {
+  return STREAK_MILESTONES.find(m => newStreak >= m && (oldStreak || 0) < m) || null
+}
 
 const defaultProgress = {
   totalScore: 0,
@@ -61,7 +78,10 @@ function calculateStreak(progress) {
 async function capacitorSaveSession(session) {
   const progress = await capacitorLoad()
   const today = new Date().toISOString().split('T')[0]
+  const oldStreak = progress.streak || 0
   const newStreak = calculateStreak(progress)
+  const multiplier = calcMultiplier(oldStreak)
+  const bonusPoints = Math.round(session.score * (multiplier - 1))
 
   const updatedMastery = { ...progress.letterMastery }
   session.letterResults.forEach(result => {
@@ -76,7 +96,7 @@ async function capacitorSaveSession(session) {
 
   const updated = {
     ...progress,
-    totalScore: progress.totalScore + session.score,
+    totalScore: progress.totalScore + session.score + bonusPoints,
     gamesPlayed: progress.gamesPlayed + 1,
     lastPlayedDate: today,
     streak: newStreak,
@@ -85,7 +105,12 @@ async function capacitorSaveSession(session) {
   }
 
   await capacitorSave(updated)
-  return updated
+  return {
+    progress: updated,
+    milestone: detectMilestone(newStreak, oldStreak),
+    multiplier,
+    bonusPoints,
+  }
 }
 
 async function capacitorReset() {
@@ -175,6 +200,10 @@ export async function saveGameSession(session) {
       const raw = localStorage.getItem(STORAGE_KEY)
       const progress = raw ? { ...defaultProgress, ...JSON.parse(raw) } : { ...defaultProgress }
       const today = new Date().toISOString().split('T')[0]
+      const oldStreak = progress.streak || 0
+      const newStreak = calculateStreak(progress)
+      const multiplier = calcMultiplier(oldStreak)
+      const bonusPoints = Math.round(session.score * (multiplier - 1))
       const updatedMastery = { ...progress.letterMastery }
       session.letterResults.forEach(result => {
         const key = result.letter
@@ -187,15 +216,20 @@ export async function saveGameSession(session) {
       })
       const updated = {
         ...progress,
-        totalScore: progress.totalScore + session.score,
+        totalScore: progress.totalScore + session.score + bonusPoints,
         gamesPlayed: progress.gamesPlayed + 1,
         lastPlayedDate: today,
-        streak: calculateStreak(progress),
+        streak: newStreak,
         letterMastery: updatedMastery,
         gameHistory: [...progress.gameHistory, session].slice(-100),
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-      return updated
+      return {
+        progress: updated,
+        milestone: detectMilestone(newStreak, oldStreak),
+        multiplier,
+        bonusPoints,
+      }
     }
   } catch (e) {
     console.error('Failed to save game session:', e)
@@ -228,3 +262,5 @@ export async function resetProgress() {
     console.error('Failed to reset progress:', e)
   }
 }
+
+export { STREAK_MILESTONES, RANKS, calcMultiplier, detectMilestone }

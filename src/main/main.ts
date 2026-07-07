@@ -50,6 +50,16 @@ const defaultProgress: ProgressData = {
   gameHistory: [],
 }
 
+const STREAK_MILESTONES = [7, 14, 30, 60, 100]
+
+function calcMultiplier(streak: number): number {
+  return 1 + (streak || 0) * 0.05
+}
+
+function detectMilestone(newStreak: number, oldStreak: number): number | null {
+  return STREAK_MILESTONES.find(m => newStreak >= m && (oldStreak || 0) < m) || null
+}
+
 async function ensureDataDir(): Promise<void> {
   if (!existsSync(DATA_DIR)) {
     await mkdir(DATA_DIR, { recursive: true })
@@ -175,7 +185,10 @@ ipcMain.handle('progress:save', async (_, session: GameSession) => {
   const progress = await loadProgress()
   
   const today = new Date().toISOString().split('T')[0]
+  const oldStreak = progress.streak || 0
   const newStreak = calculateStreak(progress)
+  const multiplier = calcMultiplier(oldStreak)
+  const bonusPoints = Math.round(session.score * (multiplier - 1))
   
   // Update letter mastery
   const updatedMastery = { ...progress.letterMastery }
@@ -191,7 +204,7 @@ ipcMain.handle('progress:save', async (_, session: GameSession) => {
   
   const updatedProgress: ProgressData = {
     ...progress,
-    totalScore: progress.totalScore + session.score,
+    totalScore: progress.totalScore + session.score + bonusPoints,
     gamesPlayed: progress.gamesPlayed + 1,
     lastPlayedDate: today,
     streak: newStreak,
@@ -200,7 +213,12 @@ ipcMain.handle('progress:save', async (_, session: GameSession) => {
   }
   
   await saveProgress(updatedProgress)
-  return updatedProgress
+  return {
+    progress: updatedProgress,
+    milestone: detectMilestone(newStreak, oldStreak),
+    multiplier,
+    bonusPoints,
+  }
 })
 
 ipcMain.handle('progress:reset', async () => {

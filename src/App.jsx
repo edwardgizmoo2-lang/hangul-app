@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import Header from './components/Header'
 import ScrollToTopButton from './components/ScrollToTopButton'
 import Loading from './components/Loading'
-import { getStats, getLetterMastery, saveGameSession } from './utils/storage'
+import CelebrationOverlay from './components/CelebrationOverlay'
+import WeeklyRecap from './components/WeeklyRecap'
+import { getStats, getLetterMastery, saveGameSession, RANKS } from './utils/storage'
 import { isNative, isElectron } from './utils/platform'
 
 const LearnTab = lazy(() => import('./components/LearnTab'))
@@ -17,7 +19,11 @@ function App() {
   const [pendingTab, setPendingTab] = useState(null)
   const [backSignal, setBackSignal] = useState(0)
   const [isMaximized, setIsMaximized] = useState(false)
+  const [milestone, setMilestone] = useState(null)
+  const [showRecap, setShowRecap] = useState(false)
   const scrollRef = useRef(null)
+
+  const rank = RANKS.filter(r => (stats?.totalScore || 0) >= r.minScore).pop() || RANKS[0]
 
   useEffect(() => {
     if (!window.electronAPI?.isMaximized) return
@@ -61,8 +67,12 @@ function App() {
   }, [gameInProgress, activeTab])
 
   const handleGameComplete = async (gameResult) => {
-    await saveGameSession(gameResult)
+    const result = await saveGameSession(gameResult)
     await loadStats()
+    if (result?.milestone) {
+      setMilestone(result.milestone)
+    }
+    setShowRecap(true)
   }
 
   const handleTabChange = (tab) => {
@@ -101,6 +111,7 @@ function App() {
         onMaximize={async () => { const m = await window.electron?.window?.maximize?.(); if (m !== undefined) setIsMaximized(m) }}
         onClose={() => window.electron?.window?.close?.()}
         isMaximized={isMaximized}
+        rank={rank}
       />
       <main ref={scrollRef} className="flex-1 overflow-y-auto">
         <Suspense fallback={<div className="flex items-center justify-center h-full"><Loading size="lg" /></div>}>
@@ -134,6 +145,14 @@ function App() {
         }`}>
           Made by Edward
         </p>
+      )}
+
+      {milestone && (
+        <CelebrationOverlay milestone={milestone} onDismiss={() => setMilestone(null)} />
+      )}
+
+      {showRecap && stats?.gameSessions?.length > 0 && (
+        <WeeklyRecap gameSessions={stats.gameSessions} onDismiss={() => setShowRecap(false)} />
       )}
 
       {pendingTab && (

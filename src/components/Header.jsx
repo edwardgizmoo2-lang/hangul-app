@@ -1,6 +1,6 @@
 import { isElectron } from '../utils/platform'
 
-export default function Header({ activeTab, onTabChange, onMinimize, onMaximize, onClose, isMaximized }) {
+export default function Header({ activeTab, onTabChange, onMinimize, onMaximize, onClose, isMaximized, rank }) {
   const electron = isElectron()
 
   return (
@@ -53,6 +53,11 @@ export default function Header({ activeTab, onTabChange, onMinimize, onMaximize,
         <div className="flex items-center gap-2">
           <span className="text-2xl leading-none font-bold">한글</span>
           <span className="text-xs text-zinc-500 uppercase tracking-wider font-medium">Hangul Learn</span>
+          {rank && (
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border border-current ${rank.color} bg-zinc-800/50`}>
+              {rank.title}
+            </span>
+          )}
         </div>
         <div className="w-px h-5 bg-zinc-700" />
         <nav className="flex items-center gap-1.5" role="tablist">
