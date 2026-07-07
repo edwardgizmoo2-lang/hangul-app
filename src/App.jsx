@@ -21,7 +21,15 @@ function App() {
   const [isMaximized, setIsMaximized] = useState(false)
   const [milestone, setMilestone] = useState(null)
   const [showRecap, setShowRecap] = useState(false)
+  const [streakBannerDismissed, setStreakBannerDismissed] = useState(false)
+  const [streakBannerClosing, setStreakBannerClosing] = useState(false)
+  const [streakBannerVisible, setStreakBannerVisible] = useState(false)
   const scrollRef = useRef(null)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setStreakBannerVisible(true), 2000)
+    return () => clearTimeout(timer)
+  }, [])
 
   const rank = RANKS.filter(r => (stats?.totalScore || 0) >= r.minScore).pop() || RANKS[0]
 
@@ -66,6 +74,17 @@ function App() {
     return () => remove()
   }, [gameInProgress, activeTab])
 
+  // Auto-dismiss streak banner after 10 seconds
+  useEffect(() => {
+    if (!streakBannerDismissed) {
+      const timer = setTimeout(() => {
+        setStreakBannerClosing(true)
+        setTimeout(() => setStreakBannerDismissed(true), 300)
+      }, 10000)
+      return () => clearTimeout(timer)
+    }
+  }, [streakBannerDismissed])
+
   const handleGameComplete = async (gameResult) => {
     const result = await saveGameSession(gameResult)
     await loadStats()
@@ -73,6 +92,8 @@ function App() {
       setMilestone(result.milestone)
     }
     setShowRecap(true)
+    setStreakBannerDismissed(false)
+    setStreakBannerClosing(false)
   }
 
   const handleTabChange = (tab) => {
@@ -117,9 +138,17 @@ function App() {
         <Suspense fallback={<div className="flex items-center justify-center h-full"><Loading size="lg" /></div>}>
           {activeTab === 'learn' && (
             <>
-              {stats?.streak?.current > 0 && stats?.streak?.lastPlayDate && stats.streak.lastPlayDate !== new Date().toISOString().split('T')[0] && (
-                <div className="px-4 pt-4">
-                  <div className="p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 animate-slide-up">
+              {streakBannerVisible && stats?.streak?.current > 0 && stats?.streak?.lastPlayDate && stats.streak.lastPlayDate !== new Date().toISOString().split('T')[0] && !streakBannerDismissed && (
+                <div className="fixed left-1/2 -translate-x-1/2 top-20 z-50 w-full max-w-sm pointer-events-none">
+                  <div className={`relative p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 backdrop-blur-sm pointer-events-auto ${streakBannerClosing ? 'animate-fade-out' : 'animate-slide-up'}`}>
+                    <button
+                      onClick={() => { setStreakBannerClosing(true); setTimeout(() => setStreakBannerDismissed(true), 300) }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded text-emerald-400/60 hover:text-emerald-300 hover:bg-emerald-500/20 transition-all"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                     <p className="text-sm font-medium text-emerald-300 text-center">
                       🔥 Play today to keep your {stats.streak.current}-day streak!
                     </p>

@@ -49,8 +49,8 @@ export default function Header({ activeTab, onTabChange, onMinimize, onMaximize,
       )}
 
       {/* Nav bar with title and tabs */}
-      <div className={`flex items-center gap-4 px-4 ${electron ? 'pb-2 pt-2.5 -webkit-app-region:drag' : 'pb-2 pt-3 safe-area-top'}`}>
-        <div className="flex items-center gap-2">
+      <div className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-4 ${electron ? 'pb-2 pt-2.5 -webkit-app-region:drag' : 'pb-2 pt-3 safe-area-top'}`}>
+        <div className="flex items-center gap-2 flex-shrink-0">
           <span className="text-2xl leading-none font-bold">한글</span>
           <span className="text-xs text-zinc-500 uppercase tracking-wider font-medium">Hangul Learn</span>
           {rank && (
@@ -59,8 +59,8 @@ export default function Header({ activeTab, onTabChange, onMinimize, onMaximize,
             </span>
           )}
         </div>
-        <div className="w-px h-5 bg-zinc-700" />
-        <nav className="flex items-center gap-1.5" role="tablist">
+        <div className="hidden sm:block w-px h-5 bg-zinc-700" />
+        <nav className="flex-1 flex items-center gap-1.5 mt-1 sm:mt-0" role="tablist">
           <button
             role="tab"
             aria-selected={activeTab === 'learn'}
