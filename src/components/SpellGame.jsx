@@ -161,7 +161,11 @@ export default function SpellGame({ onGameComplete, onBack }) {
     await playLetterAudio(char)
   }, [picked, currentSyllable, showFeedback, playLetterAudio])
 
-  const clearPicks = useCallback(() => {
+  const undoPick = useCallback(() => {
+    setPicked(prev => prev.slice(0, -1))
+  }, [])
+
+  const clearAllPicks = useCallback(() => {
     setPicked([])
   }, [])
 
@@ -436,11 +440,18 @@ export default function SpellGame({ onGameComplete, onBack }) {
             {/* Action buttons */}
             <div className="flex gap-2">
               <button
-                onClick={clearPicks}
+                onClick={undoPick}
                 disabled={picked.length === 0 || showFeedback}
                 className="flex-1 py-2.5 rounded-xl bg-zinc-800 text-zinc-400 font-medium text-sm hover:bg-zinc-700 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                Clear
+                ← Undo
+              </button>
+              <button
+                onClick={clearAllPicks}
+                disabled={picked.length === 0 || showFeedback}
+                className="flex-1 py-2.5 rounded-xl bg-zinc-800 text-zinc-400 font-medium text-sm hover:bg-zinc-700 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                Clear All
               </button>
               <button
                 onClick={submitAnswer}

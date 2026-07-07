@@ -66,11 +66,11 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
     const perLetterStats = {}
     ALL_LETTERS.forEach(l => {
       const key = l.character || l.char
-      perLetterStats[key] = { correct: 0, total: 0, consecutiveCorrect: 0, bestStreak: 0 }
+      perLetterStats[key] = { correct: 0, total: 0, consecutiveCorrect: 0, bestStreak: 0, trend: '→' }
     })
 
     let currentStreak = {}
-    gameHistory.forEach(session => {
+    gameHistory.forEach((session, si) => {
       (session.letterResults || []).forEach(result => {
         const key = result.letter
         if (!perLetterStats[key]) return
@@ -83,6 +83,13 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
         } else {
           currentStreak[key] = 0
         }
+        // Track trend from most recent session with this letter
+        if (si === gameHistory.length - 1) {
+          perLetterStats[key].trend = (result.typeCorrect && result.soundCorrect) ? '↑' : '↓'
+        }
+        if (si === gameHistory.length - 2 && perLetterStats[key].trend === '→') {
+          perLetterStats[key].trend = (result.typeCorrect && result.soundCorrect) ? '↑' : '↓'
+        }
       })
     })
 
@@ -90,15 +97,12 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
     return ALL_LETTERS.map(letter => {
       const key = letter.character || letter.char
       const storedLevel = masteryMap[key] || 0
-      const computed = perLetterStats[key] || { correct: 0, total: 0, consecutiveCorrect: 0, bestStreak: 0 }
-
-      // Use stored cumulative level as canonical mastery
-      const level = storedLevel
+      const computed = perLetterStats[key] || { correct: 0, total: 0, consecutiveCorrect: 0, bestStreak: 0, trend: '→' }
 
       return {
         ...letter,
         key,
-        level,
+        level: storedLevel,
         stats: computed,
       }
     })
@@ -113,6 +117,15 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
   const totalScore = stats?.totalScore || 0
   const totalGames = stats?.totalGamesCompleted || 0
   const avgScore = totalGames > 0 ? (totalScore / totalGames).toFixed(1) : '0'
+  const personalBests = stats?.personalBests || {}
+  const lastPlayDate = stats?.streak?.lastPlayDate
+  const today = new Date().toISOString().split('T')[0]
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+  const streakAtRisk = streak > 0 && lastPlayDate === yesterday
+
+  const streakMilestones = [7, 14, 30, 60, 100]
+  const nextMilestone = streakMilestones.find(m => m > streak)
+  const milestoneProgress = nextMilestone ? Math.min((streak / nextMilestone) * 100, 100) : 100
 
   return (
     <div className="flex-1 p-4 overflow-y-auto">
@@ -164,6 +177,41 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
             index={3}
           />
         </div>
+
+        {/* Streak Target */}
+        {nextMilestone && streak > 0 && (
+          <div className="card p-3 animate-fade-in">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-medium text-zinc-400">Next milestone</span>
+              <span className="text-xs text-zinc-500">{streak}/{nextMilestone}d</span>
+            </div>
+            <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-green-400 transition-all duration-500"
+                style={{ width: `${milestoneProgress}%` }}
+              />
+            </div>
+            <p className="text-[10px] text-zinc-500 mt-1">
+              {streak >= nextMilestone
+                ? 'Milestone reached! Keep going!'
+                : `${nextMilestone}-day streak — ${Math.round(milestoneProgress)}% there`}
+            </p>
+          </div>
+        )}
+
+        {/* Personal Bests */}
+        {personalBests.bestScore > 0 && (
+          <div className="grid grid-cols-2 gap-2 animate-fade-in">
+            <div className="card p-3 border border-purple-500/20 bg-purple-500/5">
+              <p className="text-[10px] font-medium text-zinc-400 mb-0.5">Best Score</p>
+              <p className="text-lg font-bold text-purple-400">{personalBests.bestScore}</p>
+            </div>
+            <div className="card p-3 border border-amber-500/20 bg-amber-500/5">
+              <p className="text-[10px] font-medium text-zinc-400 mb-0.5">Best Accuracy</p>
+              <p className="text-lg font-bold text-amber-400">{personalBests.bestAccuracy}%</p>
+            </div>
+          </div>
+        )}
 
         {/* Mastery Summary */}
         <div className="grid grid-cols-3 gap-2">
@@ -378,6 +426,8 @@ function MasteryCard({ letter, index = 0 }) {
   const borderColor = getCardBorderColor(level)
   const gradient = getMasteryColor(level)
   const label = getMasteryLabel(level)
+  const trend = letter.stats?.trend || '→'
+  const trendColor = trend === '↑' ? 'text-emerald-400' : trend === '↓' ? 'text-red-400' : 'text-zinc-600'
 
   return (
     <div className={`bg-zinc-900/80 border ${borderColor} rounded-lg p-4 hover:scale-105 transition-all duration-200 group animate-scale-in`} style={{ animationDelay: `${index * 40}ms` }}>
@@ -397,8 +447,9 @@ function MasteryCard({ letter, index = 0 }) {
           />
         ))}
       </div>
-      <div className="text-center">
-        <span className="text-[10px] text-zinc-600 leading-none">{label}</span>
+      <div className="flex items-center justify-center gap-1">
+        <span className={`text-[10px] font-bold ${trendColor}`}>{trend}</span>
+        <span className="text-[10px] text-zinc-600">{label}</span>
       </div>
       {letter.stats && letter.stats.total > 0 && (
         <div className="text-center">
@@ -420,6 +471,8 @@ function MasteryRow({ letter, index = 0 }) {
   const level = letter.level
   const gradient = getMasteryColor(level)
   const label = getMasteryLabel(level)
+  const trend = letter.stats?.trend || '→'
+  const trendColor = trend === '↑' ? 'text-emerald-400' : trend === '↓' ? 'text-red-400' : 'text-zinc-600'
 
   return (
     <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-2 hover:border-purple-500/30 transition-colors flex items-center gap-3 animate-scale-in" style={{ animationDelay: `${index * 30}ms` }}>
@@ -427,7 +480,10 @@ function MasteryRow({ letter, index = 0 }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-0.5">
           <span className="text-xs font-medium text-zinc-300">{letter.romanization}</span>
-          <span className="text-[10px] text-zinc-500">{label}</span>
+          <div className="flex items-center gap-1.5">
+            <span className={`text-[10px] font-bold ${trendColor}`}>{trend}</span>
+            <span className="text-[10px] text-zinc-500">{label}</span>
+          </div>
         </div>
         <div className="flex gap-0.5">
           {[1, 2, 3, 4, 5].map(segment => (

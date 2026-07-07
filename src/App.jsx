@@ -105,7 +105,18 @@ function App() {
       <main ref={scrollRef} className="flex-1 overflow-y-auto">
         <Suspense fallback={<div className="flex items-center justify-center h-full"><Loading size="lg" /></div>}>
           {activeTab === 'learn' && (
-            <LearnTab onGameComplete={handleGameComplete} onGameStateChange={setGameInProgress} backSignal={backSignal} />
+            <>
+              {stats?.streak?.current > 0 && stats?.streak?.lastPlayDate && stats.streak.lastPlayDate !== new Date().toISOString().split('T')[0] && (
+                <div className="px-4 pt-4">
+                  <div className="p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 animate-slide-up">
+                    <p className="text-sm font-medium text-emerald-300 text-center">
+                      🔥 Play today to keep your {stats.streak.current}-day streak!
+                    </p>
+                  </div>
+                </div>
+              )}
+              <LearnTab onGameComplete={handleGameComplete} onGameStateChange={setGameInProgress} backSignal={backSignal} />
+            </>
           )}
           {activeTab === 'hangul' && (
             <HangulTab />
@@ -117,7 +128,7 @@ function App() {
       </main>
       {activeTab !== 'hangul' && <ScrollToTopButton scrollRef={scrollRef} />}
 
-      {activeTab === 'learn' && (
+      {activeTab === 'learn' && !gameInProgress && (
         <p className={`fixed bottom-2 text-zinc-500 text-xs font-medium pointer-events-none select-none ${
           isElectron() ? 'right-4' : 'left-1/2 -translate-x-1/2'
         }`}>

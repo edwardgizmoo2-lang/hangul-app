@@ -109,12 +109,13 @@ async function capacitorUpdateLetter(letter, correct) {
 // --- Unified API ---
 
 function toStats(progress) {
+  const history = progress.gameHistory || []
   return {
-    gameSessions: progress.gameHistory || [],
+    gameSessions: history,
     letterStats: progress.letterMastery || {},
     streak: {
       current: progress.streak || 0,
-      longest: Math.max(...(progress.gameHistory || []).reduce((acc, g) => {
+      longest: Math.max(...(history).reduce((acc, g) => {
         const last = acc.length > 0 ? acc[acc.length - 1] : 0
         acc.push(g.score > 0 ? last + 1 : 0)
         return acc
@@ -123,6 +124,12 @@ function toStats(progress) {
     },
     totalScore: progress.totalScore || 0,
     totalGamesCompleted: progress.gamesPlayed || 0,
+    personalBests: {
+      bestScore: Math.max(...(history.map(g => g.score || 0)), 0),
+      bestAccuracy: Math.max(...(history.map(g =>
+        g.totalPossible > 0 ? Math.round((g.score / g.totalPossible) * 100) : 0
+      )), 0),
+    },
   }
 }
 
