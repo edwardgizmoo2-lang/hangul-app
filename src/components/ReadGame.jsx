@@ -24,7 +24,7 @@ function getSoundOptions(correctAnswer) {
   return options.sort(() => Math.random() - 0.5)
 }
 
-export default function ReadGame({ onGameComplete, onBack, gameType }) {
+export default function ReadGame({ onGameComplete, onBack, onLeave, onGameStateChange, gameType }) {
   const [screen, setScreen] = useState('start')
   const [mode, setMode] = useState(null)
   const [difficulty, setDifficulty] = useState(null)
@@ -37,7 +37,6 @@ export default function ReadGame({ onGameComplete, onBack, gameType }) {
   const [feedbackResult, setFeedbackResult] = useState(null)
   const [timeRemaining, setTimeRemaining] = useState(0)
   const [totalTime, setTotalTime] = useState(0)
-  const [confirmQuit, setConfirmQuit] = useState(false)
   const [showPerfect, setShowPerfect] = useState(false)
 
   const timerRef = useRef(null)
@@ -93,6 +92,11 @@ export default function ReadGame({ onGameComplete, onBack, gameType }) {
     }
   }, [currentLetter, screen])
 
+  useEffect(() => {
+    onGameStateChange(screen !== 'start')
+    return () => onGameStateChange(false)
+  }, [screen, onGameStateChange])
+
   const handleTimeout = useCallback(() => {
     if (!currentLetter) return
     stopTimer()
@@ -125,7 +129,7 @@ export default function ReadGame({ onGameComplete, onBack, gameType }) {
     }
   }, [startTimer])
 
-  const confirmQuitGame = useCallback(() => {
+  const resetGame = useCallback(() => {
     stopTimer()
     setScreen('start')
     setMode(null)
@@ -137,17 +141,7 @@ export default function ReadGame({ onGameComplete, onBack, gameType }) {
     setShowFeedback(false)
     setFeedbackResult(null)
     setTimeRemaining(0)
-    setConfirmQuit(false)
   }, [stopTimer])
-
-  const requestQuit = useCallback(() => {
-    if (results.length > 0) {
-      playSfx('leave_game')
-      setConfirmQuit(true)
-    } else {
-      confirmQuitGame()
-    }
-  }, [results, confirmQuitGame, playSfx])
 
   const selectAnswer = useCallback((answer) => {
     if (showFeedback || !currentLetter) return
@@ -225,8 +219,8 @@ export default function ReadGame({ onGameComplete, onBack, gameType }) {
       perfect: isPerfect,
     }
     onGameComplete(session)
-    confirmQuitGame()
-  }, [mode, difficulty, score, deck, results, onGameComplete, confirmQuitGame, gameType])
+    resetGame()
+  }, [mode, difficulty, score, deck, results, onGameComplete, resetGame, gameType])
 
   // Start Screen
   if (screen === 'start') {
@@ -256,14 +250,14 @@ export default function ReadGame({ onGameComplete, onBack, gameType }) {
 
           <div className="grid grid-cols-2 gap-3 max-w-md mx-auto">
             <button
-              onClick={() => setScreen('difficulty-select')}
+              onClick={() => { setScreen('difficulty-select') }}
               className="py-3 px-6 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold text-sm rounded-lg hover:from-green-500 hover:to-emerald-500 transition-all shadow-lg shadow-green-500/25 animate-slide-up"
               style={{ animationDelay: '200ms' }}
             >
               ⏱️ Timer Mode
             </button>
             <button
-              onClick={() => startGame('freeplay')}
+              onClick={() => { startGame('freeplay') }}
               className="py-3 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-sm rounded-lg hover:from-emerald-500 hover:to-teal-500 transition-all shadow-lg shadow-emerald-500/25 animate-slide-up"
               style={{ animationDelay: '300ms' }}
             >
@@ -296,7 +290,7 @@ export default function ReadGame({ onGameComplete, onBack, gameType }) {
             {Object.entries(difficultySettings).map(([key, settings], i) => (
               <button
                 key={key}
-                onClick={() => startGame('timer', key)}
+                onClick={() => { startGame('timer', key) }}
                 className="w-full p-3 bg-zinc-900/50 border border-zinc-800 rounded-lg hover:border-green-500/50 hover:bg-zinc-800/50 transition-all group animate-slide-up"
                 style={{ animationDelay: `${i * 80}ms` }}
               >
@@ -364,7 +358,7 @@ export default function ReadGame({ onGameComplete, onBack, gameType }) {
             <button onClick={handleFinishGame} className="flex-1 py-2.5 px-4 bg-emerald-600 text-white font-bold text-sm rounded-lg hover:bg-emerald-500 transition-all">
               Save & Finish
             </button>
-            <button onClick={confirmQuitGame} className="py-2.5 px-4 bg-zinc-800 text-zinc-300 font-medium text-sm rounded-lg hover:bg-zinc-700 transition-all">
+            <button onClick={resetGame} className="py-2.5 px-4 bg-zinc-800 text-zinc-300 font-medium text-sm rounded-lg hover:bg-zinc-700 transition-all">
               Discard
             </button>
           </div>
@@ -486,27 +480,7 @@ export default function ReadGame({ onGameComplete, onBack, gameType }) {
         ) : null}
       </div>
 
-      <GameControls onQuit={requestQuit} disabled={showFeedback} />
-
-      {confirmQuit && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-zinc-900/95 border border-zinc-800 rounded-xl p-5 max-w-sm w-full animate-slide-up">
-            <div className="text-center mb-4">
-              <div className="text-3xl mb-2">⚠️</div>
-              <h3 className="text-white font-bold text-base mb-1">Quit Game?</h3>
-              <p className="text-zinc-400 text-xs">Your progress in this game will not be saved.</p>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => setConfirmQuit(false)} className="flex-1 py-2.5 rounded-lg bg-zinc-800 text-zinc-300 font-medium text-sm hover:bg-zinc-700 transition-all">
-                Keep Playing
-              </button>
-              <button onClick={confirmQuitGame} className="flex-1 py-2.5 rounded-lg bg-red-600 text-white font-bold text-sm hover:bg-red-500 transition-all">
-                Quit
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <GameControls onQuit={onLeave} disabled={showFeedback} />
     </div>
   )
 }

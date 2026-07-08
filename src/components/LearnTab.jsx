@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useCallback } from 'react'
 import { consonants, doubleConsonants, vowels, compoundVowels } from '../data/hangul'
 import SpellGame from './SpellGame'
 import ListenGame from './ListenGame'
@@ -12,38 +12,27 @@ const ALL_LETTERS = [
   ...compoundVowels.map(v => ({ ...v, type: 'vowel', character: v.character || v.char })),
 ]
 
-export default function LearnTab({ onGameComplete, onGameStateChange, backSignal }) {
-  const [gameType, setGameType] = useState(null) // null | 'classify' | 'read' | 'spell' | 'listen'
+export default function LearnTab({ onLeave, onGameComplete, onGameStateChange }) {
+  const [gameType, setGameType] = useState(null)
 
   const setGameTypeWrapped = useCallback((type) => {
     setGameType(type)
-    onGameStateChange(type !== null)
-  }, [onGameStateChange])
-
-  const gameTypeRef = useRef(gameType)
-  gameTypeRef.current = gameType
-
-  useEffect(() => {
-    if (gameTypeRef.current !== null) {
-      setGameType(null)
-      onGameStateChange(false)
-    }
-  }, [backSignal, onGameStateChange])
+  }, [])
 
   if (gameType === 'listen') {
-    return <ListenGame onGameComplete={onGameComplete} onBack={() => setGameTypeWrapped(null)} gameType="listen" />
+    return <ListenGame onGameComplete={onGameComplete} onBack={() => setGameTypeWrapped(null)} onLeave={onLeave} onGameStateChange={onGameStateChange} gameType="listen" />
   }
 
   if (gameType === 'spell') {
-    return <SpellGame onGameComplete={onGameComplete} onBack={() => setGameTypeWrapped(null)} gameType="spell" />
+    return <SpellGame onGameComplete={onGameComplete} onBack={() => setGameTypeWrapped(null)} onLeave={onLeave} onGameStateChange={onGameStateChange} gameType="spell" />
   }
 
   if (gameType === 'classify') {
-    return <ClassifyGame onGameComplete={onGameComplete} onBack={() => setGameTypeWrapped(null)} gameType="classify" />
+    return <ClassifyGame onGameComplete={onGameComplete} onBack={() => setGameTypeWrapped(null)} onLeave={onLeave} onGameStateChange={onGameStateChange} gameType="classify" />
   }
 
   if (gameType === 'read') {
-    return <ReadGame onGameComplete={onGameComplete} onBack={() => setGameTypeWrapped(null)} gameType="read" />
+    return <ReadGame onGameComplete={onGameComplete} onBack={() => setGameTypeWrapped(null)} onLeave={onLeave} onGameStateChange={onGameStateChange} gameType="read" />
   }
 
   // Game Type Selection

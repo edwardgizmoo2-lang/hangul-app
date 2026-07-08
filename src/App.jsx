@@ -19,7 +19,7 @@ function App() {
   const [letterMastery, setLetterMastery] = useState({})
   const [gameInProgress, setGameInProgress] = useState(false)
   const [pendingTab, setPendingTab] = useState(null)
-  const [backSignal, setBackSignal] = useState(0)
+  const [gameSessionCounter, setGameSessionCounter] = useState(0)
   const [isMaximized, setIsMaximized] = useState(false)
   const [milestone, setMilestone] = useState(null)
   const [showRecap, setShowRecap] = useState(false)
@@ -52,6 +52,12 @@ function App() {
     window.electronAPI.onMaximizedChange(setIsMaximized)
   }, [])
 
+  useEffect(() => {
+    if (!pendingTab) return
+    const audio = new Audio('audio/sfx/leave_game.mp3')
+    audio.play().catch(() => {})
+  }, [pendingTab])
+
   const loadStats = useCallback(async () => {
     const [s, lm] = await Promise.all([getStats(), getLetterMastery()])
     setStats(s)
@@ -78,7 +84,7 @@ function App() {
     import('@capacitor/app').then(({ App }) => {
       App.addListener('backButton', () => {
         if (gameInProgress) {
-          setBackSignal(s => s + 1)
+          setPendingTab('learn')
         } else if (activeTab !== 'learn') {
           setActiveTab('learn')
         }
@@ -134,6 +140,7 @@ function App() {
 
   const confirmTabChange = () => {
     setGameInProgress(false)
+    setGameSessionCounter(c => c + 1)
     const tab = pendingTab
     setPendingTab(null)
     switchTab(tab)
@@ -150,7 +157,7 @@ function App() {
         isMaximized={isMaximized}
         rank={rank}
       />
-      <main ref={scrollRef} className="flex-1 overflow-y-scroll">
+      <main ref={scrollRef} className="flex-1 overflow-y-auto" style={{ scrollbarGutter: 'stable' }}>
         <Suspense fallback={<div className="flex items-center justify-center h-full"><Loading size="lg" /></div>}>
           {activeTab === 'learn' && (
             <>
@@ -171,7 +178,7 @@ function App() {
                   </div>
                 </div>
               )}
-              <LearnTab onGameComplete={handleGameComplete} onGameStateChange={setGameInProgress} backSignal={backSignal} />
+              <LearnTab key={gameSessionCounter} onLeave={() => setPendingTab('learn')} onGameComplete={handleGameComplete} onGameStateChange={setGameInProgress} />
             </>
           )}
           {activeTab === 'hangul' && (

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { consonants, doubleConsonants, vowels, compoundVowels } from '../data/hangul'
 import { resetProgress, RANKS } from '../utils/storage'
 import { isElectron } from '../utils/platform'
@@ -235,11 +235,8 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
   const [progressTab, setProgressTab] = useState('Overview')
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('progressViewMode') || 'grid')
   const [confirmReset, setConfirmReset] = useState(false)
-  const [rankTooltip, setRankTooltip] = useState({ show: false, x: 0, y: 0, source: 'hover' })
-  const [modalClosing, setModalClosing] = useState(false)
+  const [rankModalOpen, setRankModalOpen] = useState(false)
   const [showHistoryModal, setShowHistoryModal] = useState(false)
-  const cardRef = useRef(null)
-  const closeTimerRef = useRef(null)
 
   const handleViewMode = (mode) => {
     setViewMode(mode)
@@ -321,30 +318,9 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
   const nextMilestone = streakMilestones.find(m => m > streak)
   const milestoneProgress = nextMilestone ? Math.min((streak / nextMilestone) * 100, 100) : 100
 
-  const handleRankHover = useCallback((e) => {
-    setRankTooltip(prev => {
-      if (prev.source === 'click') return prev
-      return { show: true, x: e.clientX + 15, y: e.clientY + 10, source: 'hover' }
-    })
-  }, [])
-
-  const handleRankLeave = useCallback(() => {
-    setRankTooltip(prev => prev.source === 'hover' ? { ...prev, show: false } : prev)
-  }, [])
-
   const handleRankClick = useCallback(() => {
-    if (rankTooltip.show && rankTooltip.source === 'click') {
-      if (closeTimerRef.current) return
-      setModalClosing(true)
-      closeTimerRef.current = setTimeout(() => {
-        closeTimerRef.current = null
-        setRankTooltip(s => ({ ...s, show: false }))
-        setModalClosing(false)
-      }, 300)
-      return
-    }
-    setRankTooltip({ show: true, x: window.innerWidth / 2, y: window.innerHeight / 2, source: 'click' })
-  }, [rankTooltip.show, rankTooltip.source])
+    setRankModalOpen(o => !o)
+  }, [])
 
   const handleShowAllHistory = useCallback(() => setShowHistoryModal(true), [])
 
@@ -387,38 +363,14 @@ export default function ProgressTab({ stats, letterMastery, onRefresh }) {
         {progressTab === 'Overview' && (
           <>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-              <div ref={cardRef}>
-                <StatCard title="Total Score" value={totalScore} icon={<ScoreIcon />} color="purple" index={0} onMouseMove={handleRankHover} onMouseLeave={handleRankLeave} onClick={handleRankClick} />
-              </div>
+              <StatCard title="Total Score" value={totalScore} icon={<ScoreIcon />} color="purple" index={0} onClick={handleRankClick} />
               <StatCard title="Games" value={totalGames} icon={<GamesIcon />} color="cyan" index={1} />
               <StatCard title="Streak" value={`${streak}d`} icon={<StreakIcon />} color="emerald" subtitle={streak > 0 ? `Best: ${longestStreak}d` : 'Start today!'} index={2} />
               <StatCard title="Avg Score" value={avgScore} icon={<AvgIcon />} color="amber" index={3} />
             </div>
-            {rankTooltip.show && rankTooltip.source === 'hover' && (
-              <div className="fixed z-50 pointer-events-none bg-zinc-900/95 border border-zinc-700 rounded-xl p-3 shadow-xl" style={{ left: rankTooltip.x, top: rankTooltip.y }}>
-                <p className="text-xs font-bold text-zinc-300 mb-2">Rankings</p>
-                {RANKS.map((r, i) => {
-                  const unlocked = totalScore >= r.minScore
-                  const nextRank = RANKS[i + 1]
-                  const progress = nextRank ? Math.min(100, Math.round(((totalScore - r.minScore) / (nextRank.minScore - r.minScore)) * 100)) : 100
-                  return (
-                    <div key={r.title} className={`flex items-center gap-2 py-1 ${unlocked ? 'opacity-100' : 'opacity-40'}`}>
-                      <span className={`text-xs font-bold w-16 ${r.color}`}>{r.title}</span>
-                      <span className="text-[10px] text-zinc-300">{r.minScore.toLocaleString()} pts</span>
-                      {unlocked && <span className="text-[10px] text-emerald-400">&#10003;</span>}
-                      {nextRank && !unlocked && (
-                        <div className="flex-1 h-1 bg-zinc-800 rounded-full overflow-hidden ml-1">
-                          <div className="h-full bg-purple-500 rounded-full" style={{ width: `${progress}%` }} />
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-            {rankTooltip.show && rankTooltip.source === 'click' && (
-              <div className={`fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 ${modalClosing ? 'animate-fade-out' : 'animate-fade-in'}`} onClick={handleRankClick}>
-                <div className={`bg-zinc-900/95 border border-purple-500/30 rounded-xl p-6 max-w-sm w-full shadow-2xl ${modalClosing ? 'animate-fade-out' : 'animate-slide-up'}`} onClick={e => e.stopPropagation()}>
+            {rankModalOpen && (
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in" onClick={handleRankClick}>
+                <div className="bg-zinc-900/95 border border-purple-500/30 rounded-xl p-6 max-w-sm w-full shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()}>
                   <div className="text-center mb-4">
                     <div className="text-3xl mb-2">🏆</div>
                     <h3 className="text-white font-bold text-lg mb-1">Rankings</h3>
