@@ -5,10 +5,10 @@ export default function Header({ activeTab, onTabChange, onMinimize, onMaximize,
 
   return (
     <div className="flex flex-col bg-zinc-900/80 border-b border-zinc-800 pt-1">
-      {/* Title bar with window controls (Electron only) */}
-      {electron && (
-        <div className="h-8 flex items-center justify-between px-2 -webkit-app-region:drag">
-          <div className="flex-1" />
+      {/* Title bar spacer (always present for consistent top spacing) */}
+      <div className={`h-8 flex items-center justify-between px-2 ${electron ? '-webkit-app-region:drag' : ''}`}>
+        <div className="flex-1" />
+        {electron && (
           <div className="flex items-center -webkit-app-region:no-drag">
             <button
               onClick={onMinimize}
@@ -45,8 +45,8 @@ export default function Header({ activeTab, onTabChange, onMinimize, onMaximize,
               </svg>
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Nav bar with title and tabs */}
       <div className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-4 ${electron ? 'pb-2 pt-2.5 -webkit-app-region:drag' : 'pb-2 pt-3 safe-area-top'}`}>
