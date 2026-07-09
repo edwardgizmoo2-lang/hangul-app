@@ -34,6 +34,13 @@ function App() {
     return () => clearTimeout(timer)
   }, [])
 
+  useEffect(() => {
+    if (streakBannerVisible) {
+      const audio = new Audio('audio/sfx/notif.mp3')
+      audio.play().catch(() => {})
+    }
+  }, [streakBannerVisible])
+
   const rank = RANKS.filter(r => (stats?.totalScore || 0) >= r.minScore).pop() || RANKS[0]
   const prevRankRef = useRef(null)
 
@@ -162,7 +169,7 @@ function App() {
           {activeTab === 'learn' && (
             <>
               {streakBannerVisible && stats?.streak?.current > 0 && stats?.streak?.lastPlayDate && stats.streak.lastPlayDate !== new Date().toISOString().split('T')[0] && !streakBannerDismissed && (
-                <div className="fixed left-1/2 -translate-x-1/2 top-20 z-50 w-full max-w-sm pointer-events-none">
+                <div className="fixed left-1/2 -translate-x-1/2 z-50 w-full max-w-sm pointer-events-none" style={{ top: '200px' }}>
                   <div className={`relative p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 backdrop-blur-sm pointer-events-auto ${streakBannerClosing ? 'animate-fade-out' : 'animate-slide-up'}`}>
                     <button
                       onClick={() => { setStreakBannerClosing(true); setTimeout(() => setStreakBannerDismissed(true), 300) }}

@@ -1,7 +1,8 @@
-import { isElectron } from '../utils/platform'
+import { isElectron, isNative } from '../utils/platform'
 
 export default function Header({ activeTab, onTabChange, onMinimize, onMaximize, onClose, isMaximized, rank }) {
   const electron = isElectron()
+  const native = isNative()
 
   return (
     <div className="flex flex-col bg-zinc-900/80 border-b border-zinc-800 pt-1">
@@ -51,8 +52,8 @@ export default function Header({ activeTab, onTabChange, onMinimize, onMaximize,
       {/* Nav bar with title and tabs */}
       <div className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-4 ${electron ? 'pb-2 pt-2.5 -webkit-app-region:drag' : 'pb-2 pt-3 safe-area-top'}`}>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-2xl leading-none font-bold">한글</span>
-          <span className="text-xs text-zinc-500 uppercase tracking-wider font-medium">Hangul Learn</span>
+          <span className={`${native ? 'text-3xl' : 'text-2xl'} leading-none font-bold`}>한글</span>
+          <span className={`${native ? 'text-base' : 'text-xs'} text-zinc-500 uppercase tracking-wider font-medium`}>Hangul Learn</span>
           {rank && (
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border border-current ${rank.color} bg-zinc-800/50`}>
               {rank.title}
