@@ -190,7 +190,7 @@ export default function ClassifyGame({ onGameComplete, onBack, onLeave, onGameSt
         letter: r.letter,
         type: r.type,
         typeCorrect: r.typeCorrect,
-        soundCorrect: false,
+        soundCorrect: r.typeCorrect,
         typeAnswer: r.typeCorrect ? r.type : '',
         soundAnswer: '',
         points: r.points,

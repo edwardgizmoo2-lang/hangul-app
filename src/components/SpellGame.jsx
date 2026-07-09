@@ -244,15 +244,19 @@ export default function SpellGame({ onGameComplete, onBack, onLeave, onGameState
       totalPossible,
       completedLetters: deck.length,
       totalLetters: deck.length,
-      letterResults: results.map(r => ({
-        letter: r.syllable,
-        romanization: r.romanization,
-        typeCorrect: r.correct,
-        soundCorrect: r.correct,
-        typeAnswer: r.picked.join(''),
-        soundAnswer: r.romanization,
-        points: r.points,
-      })),
+      letterResults: results.flatMap(r => {
+        const sylObj = deck.find(d => d.display === r.syllable)
+        const jamos = sylObj?.letters || [r.syllable]
+        return jamos.map(jamo => ({
+          letter: jamo,
+          romanization: r.romanization,
+          typeCorrect: r.correct,
+          soundCorrect: r.correct,
+          typeAnswer: r.picked.join(''),
+          soundAnswer: r.romanization,
+          points: r.points,
+        }))
+      }),
       completedAt: new Date().toISOString(),
       perfect: isPerfect,
     }

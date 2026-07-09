@@ -218,15 +218,19 @@ export default function ListenGame({ onGameComplete, onBack, onLeave, onGameStat
       totalPossible,
       completedLetters: deck.length,
       totalLetters: deck.length,
-      letterResults: results.map(r => ({
-        letter: r.syllable,
-        romanization: r.romanization,
-        typeCorrect: r.correct,
-        soundCorrect: r.correct,
-        typeAnswer: r.selected,
-        soundAnswer: r.romanization,
-        points: r.points,
-      })),
+      letterResults: results.flatMap(r => {
+        const item = deck.find(d => d.display === r.syllable)
+        const jamos = item?.letters || [r.syllable]
+        return jamos.map(jamo => ({
+          letter: jamo,
+          romanization: r.romanization,
+          typeCorrect: r.correct,
+          soundCorrect: r.correct,
+          typeAnswer: r.selected,
+          soundAnswer: r.romanization,
+          points: r.points,
+        }))
+      }),
       completedAt: new Date().toISOString(),
       perfect: isPerfect,
     }
